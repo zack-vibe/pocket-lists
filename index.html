@@ -733,7 +733,7 @@
       transform: scale(0.96);
     }
 
-    /* Floating Kitchen Timer Dock */
+    /* Floating Kitchen Timer Dock — Always 100% Opaque */
     .timer-dock {
       position: fixed;
       left: 12px;
@@ -750,26 +750,51 @@
 
     .timer-bar {
       pointer-events: auto;
-      background: #18221e;
+      background: #15211c;
       color: #f1f5f3;
-      border: 2px solid var(--warn);
+      border: 3px solid var(--warn);
       border-radius: var(--radius-md);
-      padding: 10px 14px;
+      padding: 12px 15px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      box-shadow: var(--shadow-lg);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.72);
+      opacity: 1 !important;
+    }
+
+    [data-theme="light"] .timer-bar {
+      background: #ffffff;
+      color: #111c16;
+      box-shadow: 0 12px 32px rgba(15, 28, 21, 0.24);
+    }
+
+    @keyframes timerBorderFlash {
+      0%, 100% {
+        border-color: #34d399;
+        box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.38), 0 12px 32px rgba(0, 0, 0, 0.75);
+      }
+      50% {
+        border-color: #fbbf24;
+        box-shadow: 0 0 0 6px rgba(251, 191, 36, 0.48), 0 12px 32px rgba(0, 0, 0, 0.75);
+      }
     }
 
     .timer-bar.finished {
+      background: #10261d;
+      border-width: 3.5px;
       border-color: var(--accent);
-      background: #0d2b20;
-      animation: pulse 0.8s infinite;
+      opacity: 1 !important;
+      animation: timerBorderFlash 1.15s ease-in-out infinite;
+    }
+
+    [data-theme="light"] .timer-bar.finished {
+      background: #ecfdf5;
+      color: #064e3b;
     }
 
     .timer-countdown {
-      font-size: 1.3rem;
+      font-size: 1.32rem;
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       color: var(--warn);
@@ -1166,6 +1191,7 @@
 
     let activeTimers = [];
     let timerInterval = null;
+    let kitchenAudioCtx = null;
     let wakeLockSentinel = null;
     let wakeLockDesired = false;
     let cachedAccessToken = null;
@@ -1222,8 +1248,53 @@
       return formatCulinaryNumber(scaled);
     }
 
-    function renderStepTextWithScalingAndTimers(rawText, baseServings, currentServings, stepIndex) {
+    function parseDurationToSeconds(timeStr) {
+      const m = String(timeStr || '').match(/(\d+(?:\s*[-–]\s*\d+)?)\s*(minutes|minute|mins|min|seconds|second|secs|sec|hours|hour|hr)/i);
+      if (!m) return 60;
+      const nums = m[1].split(/[-–]/).map(n => parseFloat(n.trim()));
+      const primaryVal = nums[nums.length - 1] || 1;
+      const u = m[2].toLowerCase();
+      if (u.startsWith('h')) return Math.round(primaryVal * 3600);
+      if (u.startsWith('s')) return Math.round(primaryVal);
+      return Math.round(primaryVal * 60);
+    }
+
+    function inferTimerActionLabel(rawText, matchStr, stepIndex, explicitStepLabel) {
+      if (explicitStepLabel && String(explicitStepLabel).trim()) {
+        return `${String(explicitStepLabel).trim()} (${matchStr})`;
+      }
+      // Clean out {{...}} tokens to read plain English around the timer
+      const plain = String(rawText || '').replace(/\{\{([^}]+)\}\}/g, (_, inner) => {
+        const parts = inner.split('|').map(s => s.trim());
+        return parts[parts.length - 1] || '';
+      });
+
+      // Split into sentences and find the sentence containing the time
+      const sentences = plain.split(/(?<=[.!?])\s+/);
+      const targetSentence = sentences.find(s => s.includes(matchStr)) || plain;
+      const beforeTime = targetSentence.split(matchStr)[0] || '';
+
+      // Extract a concise leading verb/action phrase
+      const cleaned = beforeTime
+        .replace(/\b(for|about|around|approximately|at least|another)\s*$/i, '')
+        .replace(/[,;:]\s*$/, '')
+        .trim();
+
+      if (cleaned) {
+        const words = cleaned.split(/\s+/);
+        const shortPhrase = words.length <= 5 ? cleaned : words.slice(0, 5).join(' ') + '…';
+        const cap = shortPhrase.charAt(0).toUpperCase() + shortPhrase.slice(1);
+        return `${cap} (${matchStr})`;
+      }
+      return `Step ${stepIndex + 1} (${matchStr})`;
+    }
+
+    function renderStepTextWithScalingAndTimers(stepObjOrText, baseServings, currentServings, stepIndex) {
+      const isObj = stepObjOrText && typeof stepObjOrText === 'object';
+      const rawText = isObj ? (stepObjOrText.text || '') : String(stepObjOrText || '');
+      const stepTimerLabel = isObj ? (stepObjOrText.timerLabel || '') : '';
       if (!rawText) return '';
+
       let html = escapeHtml(rawText);
 
       // 1. Replace {{qty|unit|item}} or {{qty:1|unit:tsp|label:cumin}} tokens with scaled inline badges
@@ -1247,18 +1318,30 @@
         return `<span class="inline-qty">${combined}</span>`;
       });
 
-      // 2. Turn time mentions (e.g., "12 min", "15-20 minutes", "45 sec") into tappable timer chips
-      html = html.replace(/\b(\d+(?:\s*[-–]\s*\d+)?)\s*(minutes|minute|mins|min|seconds|second|secs|sec|hours|hour|hr)\b/gi, (match, numPart, unitPart) => {
-        const nums = numPart.split(/[-–]/).map(n => parseFloat(n.trim()));
-        const primaryVal = nums[nums.length - 1];
-        let seconds = 60;
-        const u = unitPart.toLowerCase();
-        if (u.startsWith('h')) seconds = Math.round(primaryVal * 3600);
-        else if (u.startsWith('s')) seconds = Math.round(primaryVal);
-        else seconds = Math.round(primaryVal * 60);
+      // 2. Replace explicit labeled timers [[15 minutes|Soak cashews]] first using placeholders
+      const explicitTimerPlaceholders = [];
+      html = html.replace(/\[\[([^\]]+)\]\]/g, (_, inner) => {
+        const parts = inner.split('|').map(s => s.trim());
+        const durationText = parts[0] || '5 minutes';
+        const customAction = parts[1] || stepTimerLabel || `Step ${stepIndex + 1}`;
+        const seconds = parseDurationToSeconds(durationText);
+        const fullLabel = customAction.includes('(') ? customAction : `${customAction} (${durationText})`;
+        const chipHtml = `<button type="button" class="timer-chip" onclick="event.stopPropagation(); startKitchenTimer(${seconds}, '${fullLabel.replace(/'/g, "\\'")}')">⏱ ${durationText}</button>`;
+        const token = `__TIMER_CHIP_${explicitTimerPlaceholders.length}__`;
+        explicitTimerPlaceholders.push(chipHtml);
+        return token;
+      });
 
-        const safeLabel = `Step ${stepIndex + 1} (${match})`;
+      // 3. Auto-detect any remaining plain-text time mentions (e.g., "12 min", "15 minutes")
+      html = html.replace(/\b(\d+(?:\s*[-–]\s*\d+)?)\s*(minutes|minute|mins|min|seconds|second|secs|sec|hours|hour|hr)\b/gi, (match) => {
+        const seconds = parseDurationToSeconds(match);
+        const safeLabel = inferTimerActionLabel(rawText, match, stepIndex, stepTimerLabel);
         return `<button type="button" class="timer-chip" onclick="event.stopPropagation(); startKitchenTimer(${seconds}, '${safeLabel.replace(/'/g, "\\'")}')">⏱ ${match}</button>`;
+      });
+
+      // Restore explicit timer chips
+      explicitTimerPlaceholders.forEach((chip, i) => {
+        html = html.replace(`__TIMER_CHIP_${i}__`, chip);
       });
 
       return html;
@@ -1321,9 +1404,22 @@
     });
 
     /********************************************************************
-     * FLOATING KITCHEN TIMERS + WEB AUDIO CHIME
+     * FLOATING KITCHEN TIMERS + GENTLE CHIME & VIBRATION
      ********************************************************************/
+    function ensureAudioUnlocked() {
+      try {
+        if (!kitchenAudioCtx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) kitchenAudioCtx = new AudioCtx();
+        }
+        if (kitchenAudioCtx && kitchenAudioCtx.state === 'suspended') {
+          kitchenAudioCtx.resume();
+        }
+      } catch (e) {}
+    }
+
     function startKitchenTimer(durationSeconds, label) {
+      ensureAudioUnlocked();
       const id = 't-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
       activeTimers.push({
         id,
@@ -1332,7 +1428,8 @@
         remainingSeconds: durationSeconds,
         running: true,
         finished: false,
-        lastTick: Date.now()
+        lastTick: Date.now(),
+        lastAlertAt: 0
       });
       ensureTimerLoop();
       renderTimers();
@@ -1353,11 +1450,17 @@
               if (t.remainingSeconds === 0) {
                 t.finished = true;
                 t.running = false;
-                playTimerAlarm();
+                t.lastAlertAt = now;
+                playGentleKitchenChime();
               }
             }
           } else {
             t.lastTick = now;
+            // Repeat gentle chime + buzz every 4.5s while timer is finished and unacknowledged
+            if (t.finished && now - (t.lastAlertAt || 0) >= 4500) {
+              t.lastAlertAt = now;
+              playGentleKitchenChime();
+            }
           }
         }
         if (activeTimers.length === 0) {
@@ -1368,22 +1471,38 @@
       }, 300);
     }
 
-    function playTimerAlarm() {
+    function playGentleKitchenChime() {
       try {
-        if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 400]);
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const freqs = [587.33, 783.99, 1046.5, 783.99, 1046.5];
-        freqs.forEach((f, idx) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
+        if (navigator.vibrate) {
+          navigator.vibrate([180, 110, 260]);
+        }
+        ensureAudioUnlocked();
+        if (!kitchenAudioCtx) return;
+
+        // Warm, soft marimba/chime triad (C5 -> E5 -> G5 -> C6) with gentle envelope
+        const notes = [
+          { freq: 523.25, delay: 0.00, dur: 0.45, peak: 0.14 },
+          { freq: 659.25, delay: 0.16, dur: 0.45, peak: 0.14 },
+          { freq: 783.99, delay: 0.32, dur: 0.55, peak: 0.15 },
+          { freq: 1046.50, delay: 0.50, dur: 0.85, peak: 0.12 }
+        ];
+
+        const baseTime = kitchenAudioCtx.currentTime;
+        notes.forEach(n => {
+          const osc = kitchenAudioCtx.createOscillator();
+          const gain = kitchenAudioCtx.createGain();
           osc.type = 'sine';
-          osc.frequency.value = f;
-          gain.gain.setValueAtTime(0.22, ctx.currentTime + idx * 0.16);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (idx + 1) * 0.16);
+          osc.frequency.setValueAtTime(n.freq, baseTime + n.delay);
+
+          // Smooth fade-in attack (no sharp click) and warm exponential decay
+          gain.gain.setValueAtTime(0.0001, baseTime + n.delay);
+          gain.gain.linearRampToValueAtTime(n.peak, baseTime + n.delay + 0.035);
+          gain.gain.exponentialRampToValueAtTime(0.0001, baseTime + n.delay + n.dur);
+
           osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(ctx.currentTime + idx * 0.16);
-          osc.stop(ctx.currentTime + (idx + 1) * 0.16);
+          gain.connect(kitchenAudioCtx.destination);
+          osc.start(baseTime + n.delay);
+          osc.stop(baseTime + n.delay + n.dur + 0.02);
         });
       } catch (e) {}
     }
@@ -1428,12 +1547,12 @@
         return;
       }
       dock.innerHTML = activeTimers.map(t => `
-        <div class="timer-bar ${t.finished ? 'finished' : ''}">
-          <div>
-            <div style="font-size:0.76rem; color:var(--text-secondary); font-weight:700;">${escapeHtml(t.label)}</div>
-            <div class="timer-countdown">${t.finished ? 'DONE!' : formatClock(t.remainingSeconds)}</div>
+        <div class="timer-bar ${t.finished ? 'finished' : ''}" onclick="${t.finished ? `dismissTimer('${t.id}')` : ''}">
+          <div style="min-width:0; flex:1;">
+            <div style="font-size:0.84rem; color:var(--text-primary); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(t.label)}</div>
+            <div class="timer-countdown">${t.finished ? '🔔 Time’s Up! (Tap OK)' : formatClock(t.remainingSeconds)}</div>
           </div>
-          <div style="display:flex; gap:6px;">
+          <div style="display:flex; gap:6px; flex-shrink:0;" onclick="event.stopPropagation();">
             <button class="step-done-btn" onclick="addMinuteToTimer('${t.id}')">+1m</button>
             <button class="step-done-btn" onclick="toggleTimerPause('${t.id}')">${t.finished ? 'OK' : (t.running ? 'Pause' : 'Resume')}</button>
             <button class="step-done-btn" onclick="dismissTimer('${t.id}')">✕</button>
@@ -1931,7 +2050,7 @@
                   </button>
                 </div>
                 <div class="step-body">
-                  ${renderStepTextWithScalingAndTimers(step.text, baseS, currS, idx)}
+                  ${renderStepTextWithScalingAndTimers(step, baseS, currS, idx)}
                 </div>
               </div>
             `;
@@ -2308,7 +2427,9 @@
       });
 
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+          reg.update();
+        }).catch(() => {});
       }
     })();
   </script>
