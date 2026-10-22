@@ -1,0 +1,2316 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1412" id="meta-theme-color" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>Pocket Kitchen &amp; Lists</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <style>
+    :root, [data-theme="dark"] {
+      --bg-primary: #0d1210;
+      --bg-elevated: #161f1b;
+      --bg-card: #1b2621;
+      --bg-card-hover: #223029;
+      --bg-input: #121916;
+      --border-subtle: #283830;
+      --border-focus: #34d399;
+      --text-primary: #f1f5f3;
+      --text-secondary: #a3b8ae;
+      --text-muted: #687d73;
+      --accent: #34d399;
+      --accent-strong: #10b981;
+      --accent-soft: rgba(52, 211, 153, 0.14);
+      --accent-border: rgba(52, 211, 153, 0.38);
+      --warn: #fbbf24;
+      --warn-soft: rgba(251, 191, 36, 0.15);
+      --danger: #f87171;
+      --danger-soft: rgba(248, 113, 113, 0.14);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.28);
+      --shadow-lg: 0 8px 26px rgba(0, 0, 0, 0.48);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #f4f7f5;
+      --bg-elevated: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #edf3ef;
+      --bg-input: #eaf0ec;
+      --border-subtle: #d5e0d9;
+      --border-focus: #059669;
+      --text-primary: #111c16;
+      --text-secondary: #43594e;
+      --text-muted: #728a7e;
+      --accent: #059669;
+      --accent-strong: #047857;
+      --accent-soft: rgba(5, 150, 105, 0.11);
+      --accent-border: rgba(5, 150, 105, 0.35);
+      --warn: #d97706;
+      --warn-soft: rgba(217, 119, 6, 0.12);
+      --danger: #dc2626;
+      --danger-soft: rgba(220, 38, 38, 0.1);
+      --shadow-sm: 0 2px 8px rgba(15, 28, 21, 0.06);
+      --shadow-lg: 0 8px 24px rgba(15, 28, 21, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Google Sans", Inter, sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+      overscroll-behavior-y: contain;
+      min-height: 100dvh;
+    }
+
+    /* App Layout */
+    .app-shell {
+      max-width: 540px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding-top: calc(var(--safe-top) + 64px);
+      padding-bottom: calc(var(--safe-bottom) + 92px);
+    }
+
+    /* Top Header */
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border-subtle);
+      padding-top: var(--safe-top);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .top-bar-inner {
+      max-width: 540px;
+      margin: 0 auto;
+      height: 64px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-title {
+      font-size: 1.08rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sync-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.73rem;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .sync-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+    .sync-pill.synced .sync-dot { background: var(--accent); }
+    .sync-pill.syncing .sync-dot { background: var(--warn); animation: pulse 1s infinite; }
+    .sync-pill.error .sync-dot { background: var(--danger); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-btn, .wake-btn {
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 0 11px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn {
+      width: 38px;
+      padding: 0;
+      font-size: 1rem;
+    }
+
+    .wake-btn.active {
+      background: var(--warn-soft);
+      color: var(--warn);
+      border-color: var(--warn);
+    }
+
+    /* Main Content Container */
+    .view-container {
+      flex: 1;
+      padding: 14px 14px 28px;
+      display: none;
+      animation: fadeIn 0.16s ease;
+    }
+
+    .view-container.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Connection Banner */
+    .connect-banner {
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.86rem;
+    }
+
+    /* Grocery View */
+    .progress-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .progress-track {
+      height: 8px;
+      background: var(--bg-input);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+      width: 0%;
+      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quick-add-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .quick-input {
+      flex: 1;
+      min-width: 0;
+      height: 46px;
+      padding: 0 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-size: 0.96rem;
+      outline: none;
+    }
+
+    .quick-input:focus {
+      border-color: var(--border-focus);
+    }
+
+    .quick-select {
+      width: 118px;
+      height: 46px;
+      padding: 0 8px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      height: 46px;
+      padding: 0 16px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: var(--accent);
+      color: #062117;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .section-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .section-header {
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .section-block.collapsed .section-header {
+      border-bottom: none;
+    }
+
+    .section-block.collapsed .section-items {
+      display: none;
+    }
+
+    .section-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .section-count {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--bg-input);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    /* Uncluttered Grocery Item Row */
+    .grocery-row {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-height: 52px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.12s ease, opacity 0.15s ease;
+    }
+
+    .grocery-row:last-child {
+      border-bottom: none;
+    }
+
+    .grocery-row:active {
+      background: var(--bg-card-hover);
+    }
+
+    .checkbox-ui {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      border: 2px solid var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.14s ease;
+      background: transparent;
+    }
+
+    .grocery-row.checked .checkbox-ui,
+    .prep-row.checked .checkbox-ui {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #062117;
+    }
+
+    .checkbox-ui svg {
+      width: 15px;
+      height: 15px;
+      stroke-width: 3;
+      opacity: 0;
+      transform: scale(0.7);
+      transition: all 0.14s ease;
+    }
+
+    .grocery-row.checked .checkbox-ui svg,
+    .prep-row.checked .checkbox-ui svg {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .grocery-text {
+      flex: 1;
+      font-size: 1.04rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      transition: color 0.14s ease;
+    }
+
+    .grocery-row.checked {
+      opacity: 0.52;
+    }
+
+    .grocery-row.checked .grocery-text {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .list-footer-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      height: 44px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-secondary.danger {
+      color: var(--danger);
+      border-color: rgba(248, 113, 113, 0.28);
+    }
+
+    /* Cook / Recipe View (Kitchen Counter Optimized) */
+    .recipe-switcher {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      scrollbar-width: none;
+    }
+    .recipe-switcher::-webkit-scrollbar { display: none; }
+
+    .recipe-pill {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 0.86rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .recipe-pill.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .recipe-hero {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .recipe-title {
+      font-size: 1.38rem;
+      font-weight: 800;
+      line-height: 1.25;
+      margin: 0 0 10px 0;
+      letter-spacing: -0.02em;
+    }
+
+    .recipe-meta-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+
+    .meta-chip {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 8px;
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .recipe-notes-banner {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      background: var(--accent-soft);
+      border-left: 3px solid var(--accent);
+      padding: 9px 12px;
+      border-radius: 6px;
+      margin-bottom: 14px;
+    }
+
+    /* Dynamic Serving Scaler */
+    .scaler-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      gap: 10px;
+    }
+
+    .scaler-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .scaler-sub {
+      font-size: 0.74rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .scaler-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 1.25rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-btn:active {
+      background: var(--accent);
+      color: #062117;
+    }
+
+    .servings-value {
+      min-width: 38px;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    /* Cook Mode Sub-tabs or Sections */
+    .cook-section-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+      margin: 18px 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .prep-row {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-height: 50px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .prep-row:last-child { border-bottom: none; }
+    .prep-row.checked { opacity: 0.48; }
+    .prep-row.checked .prep-text { text-decoration: line-through; }
+
+    .prep-qty {
+      font-weight: 800;
+      color: var(--accent);
+      margin-right: 4px;
+    }
+
+    /* Interactive Step-by-Step Cards */
+    .step-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.18s ease;
+      cursor: pointer;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .step-card.active-step {
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+      box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-lg);
+    }
+
+    .step-card.completed-step {
+      opacity: 0.48;
+    }
+
+    .step-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--bg-input);
+      color: var(--text-secondary);
+    }
+
+    .step-card.active-step .step-badge {
+      background: var(--accent);
+      color: #062117;
+    }
+
+    .step-done-btn {
+      height: 32px;
+      padding: 0 11px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .step-card.completed-step .step-done-btn {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent-border);
+    }
+
+    .step-body {
+      font-size: 1.12rem;
+      line-height: 1.55;
+      color: var(--text-primary);
+    }
+
+    .inline-qty {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 6px;
+      margin: 0 1px;
+    }
+
+    .timer-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--warn-soft);
+      color: var(--warn);
+      border: 1px solid rgba(251, 191, 36, 0.45);
+      font-weight: 700;
+      font-size: 0.92rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin: 2px 2px;
+      cursor: pointer;
+      vertical-align: baseline;
+    }
+
+    .timer-chip:active {
+      transform: scale(0.96);
+    }
+
+    /* Floating Kitchen Timer Dock */
+    .timer-dock {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: calc(var(--safe-bottom) + 76px);
+      max-width: 516px;
+      margin: 0 auto;
+      z-index: 45;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .timer-bar {
+      pointer-events: auto;
+      background: #18221e;
+      color: #f1f5f3;
+      border: 2px solid var(--warn);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .timer-bar.finished {
+      border-color: var(--accent);
+      background: #0d2b20;
+      animation: pulse 0.8s infinite;
+    }
+
+    .timer-countdown {
+      font-size: 1.3rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--warn);
+    }
+
+    .timer-bar.finished .timer-countdown {
+      color: var(--accent);
+    }
+
+    /* Meal Plan Cards */
+    .meal-card, .note-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .meal-day-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 3px 9px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+
+    .meal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+    }
+
+    .meal-notes {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      margin: 8px 0 12px;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      background: var(--bg-elevated);
+      border-top: 1px solid var(--border-subtle);
+      padding-bottom: var(--safe-bottom);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .bottom-nav-inner {
+      max-width: 540px;
+      margin: 0 auto;
+      height: 66px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 0 6px;
+    }
+
+    .nav-tab {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.15s ease;
+    }
+
+    .nav-tab .nav-icon {
+      font-size: 1.25rem;
+      padding: 3px 16px;
+      border-radius: 999px;
+      transition: background 0.15s ease;
+    }
+
+    .nav-tab.active {
+      color: var(--text-primary);
+    }
+
+    .nav-tab.active .nav-icon {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.68);
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-lg);
+      max-height: 88dvh;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin: 0 0 12px 0;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+
+    .form-textarea {
+      width: 100%;
+      min-height: 96px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.95rem;
+      resize: vertical;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 36px 20px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Bar -->
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <div class="brand-group">
+        <span class="brand-title" id="header-title">Grocery List</span>
+        <div class="sync-pill" id="sync-pill" title="Tap to sync with Google Sheets">
+          <span class="sync-dot"></span>
+          <span id="sync-text">Local</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="wake-btn" id="wake-btn" title="Keep screen awake while shopping or cooking">
+          <span id="wake-icon">☀</span>
+          <span id="wake-label">Awake</span>
+        </button>
+        <button class="icon-btn" id="theme-btn" title="Toggle Dark/Light Theme">◐</button>
+        <button class="icon-btn" id="settings-btn" title="Sync &amp; Connection Settings">⚙</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <!-- 1. GROCERY LIST VIEW -->
+    <section class="view-container active" id="view-grocery">
+      <div id="unconnected-notice" class="connect-banner" style="display:none;">
+        <div>
+          <strong>Offline / Local Mode</strong><br/>
+          <span>Open your one-tap connection link from PC to enable live Google Sheets sync.</span>
+        </div>
+        <button class="btn-secondary" style="flex:0 0 auto; height:36px; padding:0 12px;" onclick="openSettingsModal()">Link</button>
+      </div>
+
+      <div class="progress-card">
+        <div class="progress-header">
+          <span id="grocery-progress-text">0 of 0 items checked</span>
+          <span id="grocery-remaining-text">0 left</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="grocery-progress-fill"></div>
+        </div>
+      </div>
+
+      <form class="quick-add-bar" id="grocery-add-form">
+        <input type="text" class="quick-input" id="grocery-input" placeholder="Add quantity &amp; item (e.g., 2 avocados)..." required />
+        <select class="quick-select" id="grocery-section-select">
+          <option value="Produce">Produce</option>
+          <option value="Dairy & Eggs">Dairy &amp; Eggs</option>
+          <option value="Frozen & Refrigerated">Frozen/Refrig</option>
+          <option value="Dry Goods / Pantry">Dry Goods</option>
+          <option value="Bakery & Bread">Bakery</option>
+          <option value="Household / Other">Household</option>
+        </select>
+        <button type="submit" class="btn-primary">+</button>
+      </form>
+
+      <div id="grocery-sections-container"></div>
+
+      <div class="list-footer-bar">
+        <button class="btn-secondary" id="toggle-hide-checked-btn">Hide Checked</button>
+        <button class="btn-secondary danger" id="clear-checked-btn">Clear Checked</button>
+      </div>
+    </section>
+
+    <!-- 2. COOK / RECIPE VIEW (KITCHEN COUNTER) -->
+    <section class="view-container" id="view-cook">
+      <div class="recipe-switcher" id="recipe-switcher"></div>
+      <div id="recipe-content"></div>
+    </section>
+
+    <!-- 3. MEAL PLAN VIEW -->
+    <section class="view-container" id="view-meals">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span style="font-size:0.9rem; color:var(--text-secondary); font-weight:600;">Upcoming Planned Meals</span>
+        <button class="btn-primary" style="height:38px; font-size:0.85rem;" onclick="openAddMealModal()">+ Add Meal</button>
+      </div>
+      <div id="meals-container"></div>
+    </section>
+
+    <!-- 4. NOTES VIEW -->
+    <section class="view-container" id="view-notes">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <span style="font-size:0.9rem; color:var(--text-secondary); font-weight:600;">Notes &amp; Secondary Lists</span>
+        <button class="btn-primary" style="height:38px; font-size:0.85rem;" onclick="openAddNoteModal()">+ New Note</button>
+      </div>
+      <div id="notes-container"></div>
+    </section>
+  </main>
+
+  <!-- Floating Kitchen Timer Dock -->
+  <div class="timer-dock" id="timer-dock"></div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="nav-tab active" data-view="grocery">
+        <span class="nav-icon">🛒</span>
+        <span>Grocery</span>
+      </button>
+      <button class="nav-tab" data-view="cook">
+        <span class="nav-icon">🍳</span>
+        <span>Cook</span>
+      </button>
+      <button class="nav-tab" data-view="meals">
+        <span class="nav-icon">📅</span>
+        <span>Meals</span>
+      </button>
+      <button class="nav-tab" data-view="notes">
+        <span class="nav-icon">📝</span>
+        <span>Notes</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Settings / Connection Modal -->
+  <div class="modal-backdrop" id="settings-modal">
+    <div class="modal-card">
+      <h3 class="modal-title">Google Sheets Sync Settings</h3>
+      <p style="font-size:0.86rem; color:var(--text-secondary); margin-top:0;">
+        Your personal data lives privately in your Google Sheet and is cached in your phone's local storage for instant offline access.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Connection Status</label>
+        <div id="settings-status-box" style="padding:10px 12px; border-radius:10px; background:var(--bg-input); font-size:0.85rem;"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Paste Connection Code (if linking manually)</label>
+        <input type="text" class="quick-input" style="width:100%;" id="manual-connect-input" placeholder="Paste #connect=... code or link" />
+      </div>
+      <div style="display:flex; gap:8px; margin-top:16px;">
+        <button class="btn-primary" style="flex:1;" onclick="saveManualConnect()">Save &amp; Sync</button>
+        <button class="btn-secondary" style="flex:1;" onclick="closeModals()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Meal Modal -->
+  <div class="modal-backdrop" id="add-meal-modal">
+    <div class="modal-card">
+      <h3 class="modal-title">Add Planned Meal</h3>
+      <form id="add-meal-form">
+        <div class="form-group">
+          <label class="form-label">Day / Label</label>
+          <input type="text" class="quick-input" style="width:100%;" id="meal-day-input" placeholder="e.g., Tonight, Thursday, Weekend" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Meal Name</label>
+          <input type="text" class="quick-input" style="width:100%;" id="meal-name-input" placeholder="e.g., Paneer Makhani with Garlic Naan" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Realistic Time Estimate</label>
+          <input type="text" class="quick-input" style="width:100%;" id="meal-time-input" placeholder="e.g., 55m total (25m prep • 30m cook)" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes / Adaptations</label>
+          <textarea class="form-textarea" id="meal-notes-input" placeholder="Vegetarian adaptations, ingredients to use up, etc."></textarea>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="submit" class="btn-primary" style="flex:1;">Save Meal</button>
+          <button type="button" class="btn-secondary" style="flex:1;" onclick="closeModals()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Note Modal -->
+  <div class="modal-backdrop" id="add-note-modal">
+    <div class="modal-card">
+      <h3 class="modal-title">New Note or Checklist</h3>
+      <form id="add-note-form">
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input type="text" class="quick-input" style="width:100%;" id="note-title-input" placeholder="e.g., Kitchen Prep / Spice Restock" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="quick-select" style="width:100%;" id="note-type-input">
+            <option value="checklist">Interactive Checklist (one item per line)</option>
+            <option value="text">Standard Note</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Content</label>
+          <textarea class="form-textarea" id="note-content-input" placeholder="Enter items (one per line) or note text..." required></textarea>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="submit" class="btn-primary" style="flex:1;">Save Note</button>
+          <button type="button" class="btn-secondary" style="flex:1;" onclick="closeModals()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    /********************************************************************
+     * STATE & STORAGE KEYS (Namespaced for Pocket Kitchen)
+     ********************************************************************/
+    const STORAGE_KEYS = {
+      STATE: 'pocket_kitchen_state_v1',
+      SYNC_CFG: 'pocket_kitchen_sync_cfg_v1',
+      THEME: 'pocket_kitchen_theme_v1',
+      UI_PREFS: 'pocket_kitchen_ui_prefs_v1'
+    };
+
+    const SECTION_ORDER = [
+      'Produce',
+      'Dairy & Eggs',
+      'Frozen & Refrigerated',
+      'Dry Goods / Pantry',
+      'Bakery & Bread',
+      'Household / Other'
+    ];
+
+    let appState = {
+      grocery: [],
+      recipes: [],
+      meals: [],
+      notes: [],
+      lastSyncedAt: null
+    };
+
+    let uiPrefs = {
+      activeView: 'grocery',
+      hideCheckedGrocery: false,
+      collapsedSections: {},
+      selectedRecipeId: null,
+      activeStepByRecipe: {}
+    };
+
+    let activeTimers = [];
+    let timerInterval = null;
+    let wakeLockSentinel = null;
+    let wakeLockDesired = false;
+    let cachedAccessToken = null;
+    let cachedTokenExpiry = 0;
+    let syncDebounceTimer = null;
+
+    /********************************************************************
+     * CLEAN CULINARY FRACTION FORMATTER & DYNAMIC SERVING SCALER
+     ********************************************************************/
+    const FRACTION_TABLE = [
+      { dec: 0.125, str: '⅛' },
+      { dec: 0.25,  str: '¼' },
+      { dec: 0.333, str: '⅓' },
+      { dec: 0.375, str: '⅜' },
+      { dec: 0.5,   str: '½' },
+      { dec: 0.625, str: '⅝' },
+      { dec: 0.666, str: '⅔' },
+      { dec: 0.75,  str: '¾' },
+      { dec: 0.875, str: '⅞' }
+    ];
+
+    function formatCulinaryNumber(val) {
+      if (val === null || val === undefined || isNaN(val) || val <= 0) return '';
+      const rounded = Math.round(val * 100) / 100;
+      const whole = Math.floor(rounded + 0.04);
+      const rem = rounded - whole;
+
+      if (rem < 0.06) return whole > 0 ? String(whole) : String(rounded);
+      if (rem > 0.94) return String(whole + 1);
+
+      let bestFrac = '';
+      let minDiff = 999;
+      for (const f of FRACTION_TABLE) {
+        const diff = Math.abs(rem - f.dec);
+        if (diff < minDiff) {
+          minDiff = diff;
+          bestFrac = f.str;
+        }
+      }
+
+      if (minDiff <= 0.06) {
+        return whole > 0 ? `${whole} ${bestFrac}` : bestFrac;
+      }
+      return String(Math.round(val * 10) / 10);
+    }
+
+    function scaleQuantity(baseQty, baseServings, currentServings) {
+      if (baseQty === null || baseQty === undefined || baseQty === '' || isNaN(Number(baseQty))) {
+        return '';
+      }
+      const b = Number(baseServings) || 4;
+      const c = Number(currentServings) || b;
+      const scaled = (Number(baseQty) * c) / b;
+      return formatCulinaryNumber(scaled);
+    }
+
+    function renderStepTextWithScalingAndTimers(rawText, baseServings, currentServings, stepIndex) {
+      if (!rawText) return '';
+      let html = escapeHtml(rawText);
+
+      // 1. Replace {{qty|unit|item}} or {{qty:1|unit:tsp|label:cumin}} tokens with scaled inline badges
+      html = html.replace(/\{\{([^}]+)\}\}/g, (_, inner) => {
+        const parts = inner.split('|').map(s => s.trim());
+        let qty = null, unit = '', label = '';
+        if (parts[0] && parts[0].includes(':')) {
+          for (const p of parts) {
+            const [k, v] = p.split(':').map(x => x.trim());
+            if (k === 'qty') qty = parseFloat(v);
+            else if (k === 'unit') unit = v;
+            else if (k === 'label' || k === 'item') label = v;
+          }
+        } else {
+          qty = parseFloat(parts[0]);
+          unit = parts[1] || '';
+          label = parts[2] || '';
+        }
+        const scaledStr = isNaN(qty) ? parts[0] : scaleQuantity(qty, baseServings, currentServings);
+        const combined = [scaledStr, unit, label].filter(Boolean).join(' ');
+        return `<span class="inline-qty">${combined}</span>`;
+      });
+
+      // 2. Turn time mentions (e.g., "12 min", "15-20 minutes", "45 sec") into tappable timer chips
+      html = html.replace(/\b(\d+(?:\s*[-–]\s*\d+)?)\s*(minutes|minute|mins|min|seconds|second|secs|sec|hours|hour|hr)\b/gi, (match, numPart, unitPart) => {
+        const nums = numPart.split(/[-–]/).map(n => parseFloat(n.trim()));
+        const primaryVal = nums[nums.length - 1];
+        let seconds = 60;
+        const u = unitPart.toLowerCase();
+        if (u.startsWith('h')) seconds = Math.round(primaryVal * 3600);
+        else if (u.startsWith('s')) seconds = Math.round(primaryVal);
+        else seconds = Math.round(primaryVal * 60);
+
+        const safeLabel = `Step ${stepIndex + 1} (${match})`;
+        return `<button type="button" class="timer-chip" onclick="event.stopPropagation(); startKitchenTimer(${seconds}, '${safeLabel.replace(/'/g, "\\'")}')">⏱ ${match}</button>`;
+      });
+
+      return html;
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    /********************************************************************
+     * SCREEN WAKE LOCK API (Shopping & Cooking Mode)
+     ********************************************************************/
+    async function requestWakeLock() {
+      if (!('wakeLock' in navigator)) return false;
+      try {
+        wakeLockSentinel = await navigator.wakeLock.request('screen');
+        wakeLockSentinel.addEventListener('release', () => {
+          updateWakeButtonUI();
+        });
+        updateWakeButtonUI();
+        return true;
+      } catch (err) {
+        updateWakeButtonUI();
+        return false;
+      }
+    }
+
+    async function toggleWakeLock() {
+      wakeLockDesired = !wakeLockDesired;
+      if (wakeLockDesired) {
+        await requestWakeLock();
+      } else if (wakeLockSentinel) {
+        await wakeLockSentinel.release();
+        wakeLockSentinel = null;
+      }
+      updateWakeButtonUI();
+    }
+
+    function updateWakeButtonUI() {
+      const btn = document.getElementById('wake-btn');
+      const label = document.getElementById('wake-label');
+      const isLocked = Boolean(wakeLockSentinel && !wakeLockSentinel.released);
+      if (wakeLockDesired || isLocked) {
+        btn.classList.add('active');
+        label.textContent = 'Awake On';
+      } else {
+        btn.classList.remove('active');
+        label.textContent = 'Awake';
+      }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && wakeLockDesired) {
+        requestWakeLock();
+      }
+    });
+
+    /********************************************************************
+     * FLOATING KITCHEN TIMERS + WEB AUDIO CHIME
+     ********************************************************************/
+    function startKitchenTimer(durationSeconds, label) {
+      const id = 't-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+      activeTimers.push({
+        id,
+        label,
+        totalSeconds: durationSeconds,
+        remainingSeconds: durationSeconds,
+        running: true,
+        finished: false,
+        lastTick: Date.now()
+      });
+      ensureTimerLoop();
+      renderTimers();
+    }
+
+    function ensureTimerLoop() {
+      if (timerInterval) return;
+      timerInterval = setInterval(() => {
+        const now = Date.now();
+        let anyChanged = false;
+        for (const t of activeTimers) {
+          if (t.running && !t.finished) {
+            const elapsed = Math.floor((now - t.lastTick) / 1000);
+            if (elapsed >= 1) {
+              t.remainingSeconds = Math.max(0, t.remainingSeconds - elapsed);
+              t.lastTick = now;
+              anyChanged = true;
+              if (t.remainingSeconds === 0) {
+                t.finished = true;
+                t.running = false;
+                playTimerAlarm();
+              }
+            }
+          } else {
+            t.lastTick = now;
+          }
+        }
+        if (activeTimers.length === 0) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+        if (anyChanged) renderTimers();
+      }, 300);
+    }
+
+    function playTimerAlarm() {
+      try {
+        if (navigator.vibrate) navigator.vibrate([250, 120, 250, 120, 400]);
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const freqs = [587.33, 783.99, 1046.5, 783.99, 1046.5];
+        freqs.forEach((f, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = f;
+          gain.gain.setValueAtTime(0.22, ctx.currentTime + idx * 0.16);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (idx + 1) * 0.16);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.16);
+          osc.stop(ctx.currentTime + (idx + 1) * 0.16);
+        });
+      } catch (e) {}
+    }
+
+    function formatClock(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function toggleTimerPause(id) {
+      const t = activeTimers.find(x => x.id === id);
+      if (!t) return;
+      if (t.finished) {
+        dismissTimer(id);
+        return;
+      }
+      t.running = !t.running;
+      t.lastTick = Date.now();
+      renderTimers();
+    }
+
+    function addMinuteToTimer(id) {
+      const t = activeTimers.find(x => x.id === id);
+      if (!t) return;
+      t.remainingSeconds += 60;
+      t.finished = false;
+      t.running = true;
+      t.lastTick = Date.now();
+      renderTimers();
+    }
+
+    function dismissTimer(id) {
+      activeTimers = activeTimers.filter(x => x.id !== id);
+      renderTimers();
+    }
+
+    function renderTimers() {
+      const dock = document.getElementById('timer-dock');
+      if (activeTimers.length === 0) {
+        dock.innerHTML = '';
+        return;
+      }
+      dock.innerHTML = activeTimers.map(t => `
+        <div class="timer-bar ${t.finished ? 'finished' : ''}">
+          <div>
+            <div style="font-size:0.76rem; color:var(--text-secondary); font-weight:700;">${escapeHtml(t.label)}</div>
+            <div class="timer-countdown">${t.finished ? 'DONE!' : formatClock(t.remainingSeconds)}</div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="step-done-btn" onclick="addMinuteToTimer('${t.id}')">+1m</button>
+            <button class="step-done-btn" onclick="toggleTimerPause('${t.id}')">${t.finished ? 'OK' : (t.running ? 'Pause' : 'Resume')}</button>
+            <button class="step-done-btn" onclick="dismissTimer('${t.id}')">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /********************************************************************
+     * GOOGLE SHEETS TWO-WAY SYNC ENGINE (Private LocalStorage Config)
+     ********************************************************************/
+    function getSyncConfig() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.SYNC_CFG);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function saveSyncConfig(cfg) {
+      localStorage.setItem(STORAGE_KEYS.SYNC_CFG, JSON.stringify(cfg));
+      cachedAccessToken = null;
+      cachedTokenExpiry = 0;
+      updateSyncUI('synced', 'Linked');
+      document.getElementById('unconnected-notice').style.display = 'none';
+    }
+
+    function decodeBase64UrlJson(str) {
+      const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64 + '==='.slice((base64.length + 3) % 4);
+      const binary = atob(padded);
+      const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes));
+    }
+
+    function checkUrlHashForConnection() {
+      const hash = window.location.hash || '';
+      if (hash.startsWith('#connect=')) {
+        const tokenPart = hash.slice('#connect='.length).trim();
+        try {
+          const cfg = decodeBase64UrlJson(tokenPart);
+          if (cfg && (cfg.sheetId || cfg.webhookUrl)) {
+            saveSyncConfig(cfg);
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+            return true;
+          }
+        } catch (err) {
+          console.error('Invalid connection payload:', err);
+        }
+      }
+      return false;
+    }
+
+    async function getGoogleAccessToken(cfg) {
+      if (cachedAccessToken && Date.now() < cachedTokenExpiry) {
+        return cachedAccessToken;
+      }
+      const body = new URLSearchParams({
+        client_id: cfg.cid,
+        client_secret: cfg.cs,
+        refresh_token: cfg.rt,
+        grant_type: 'refresh_token'
+      });
+      const resp = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      });
+      if (!resp.ok) throw new Error('Token refresh failed');
+      const data = await resp.json();
+      cachedAccessToken = data.access_token;
+      cachedTokenExpiry = Date.now() + ((data.expires_in || 3600) - 180) * 1000;
+      return cachedAccessToken;
+    }
+
+    function updateSyncUI(status, text) {
+      const pill = document.getElementById('sync-pill');
+      const label = document.getElementById('sync-text');
+      pill.className = 'sync-pill ' + status;
+      label.textContent = text;
+    }
+
+    async function pullFromGoogleSheets() {
+      const cfg = getSyncConfig();
+      if (!cfg || !cfg.sheetId) {
+        document.getElementById('unconnected-notice').style.display = 'flex';
+        updateSyncUI('', 'Local');
+        return;
+      }
+
+      document.getElementById('unconnected-notice').style.display = 'none';
+      updateSyncUI('syncing', 'Syncing…');
+
+      try {
+        const token = await getGoogleAccessToken(cfg);
+        const ranges = [
+          encodeURIComponent("'Grocery List'!A2:F500"),
+          encodeURIComponent("'Recipes'!A2:J100"),
+          encodeURIComponent("'Meal Plan'!A2:G100"),
+          encodeURIComponent("'Notes'!A2:F200")
+        ].map(r => `ranges=${r}`).join('&');
+
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchGet?${ranges}`;
+        const resp = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!resp.ok) throw new Error(`Sheets read HTTP ${resp.status}`);
+        const data = await resp.json();
+        const valueRanges = data.valueRanges || [];
+
+        // 1. Parse Grocery List
+        const groceryRows = (valueRanges[0] && valueRanges[0].values) || [];
+        appState.grocery = groceryRows
+          .filter(r => r[2] && String(r[2]).trim() !== '')
+          .map((r, i) => ({
+            id: r[0] || `g-${i + 1}`,
+            section: r[1] || 'Dry Goods / Pantry',
+            item: r[2] || '',
+            checked: String(r[3]).toUpperCase() === 'TRUE',
+            sortOrder: Number(r[4]) || i + 1,
+            updatedAt: r[5] || ''
+          }));
+
+        // 2. Parse Recipes
+        const recipeRows = (valueRanges[1] && valueRanges[1].values) || [];
+        appState.recipes = recipeRows
+          .filter(r => r[1] && String(r[1]).trim() !== '')
+          .map((r, i) => {
+            let ingredients = [];
+            let steps = [];
+            try { ingredients = JSON.parse(r[8] || '[]'); } catch (e) {}
+            try { steps = JSON.parse(r[9] || '[]'); } catch (e) {}
+            return {
+              id: r[0] || `r-${i + 1}`,
+              title: r[1] || 'Untitled Recipe',
+              active: String(r[2]).toUpperCase() === 'TRUE',
+              baseServings: Number(r[3]) || 4,
+              currentServings: Number(r[4]) || Number(r[3]) || 4,
+              prepTime: r[5] || '',
+              cookTime: r[6] || '',
+              notes: r[7] || '',
+              ingredients,
+              steps
+            };
+          });
+
+        // 3. Parse Meal Plan
+        const mealRows = (valueRanges[2] && valueRanges[2].values) || [];
+        appState.meals = mealRows
+          .filter(r => r[2] && String(r[2]).trim() !== '')
+          .map((r, i) => ({
+            id: r[0] || `m-${i + 1}`,
+            day: r[1] || 'Planned',
+            name: r[2] || '',
+            time: r[3] || '',
+            difficulty: r[4] || '',
+            notes: r[5] || '',
+            recipeId: r[6] || ''
+          }));
+
+        // 4. Parse Notes
+        const noteRows = (valueRanges[3] && valueRanges[3].values) || [];
+        appState.notes = noteRows
+          .filter(r => r[1] && String(r[1]).trim() !== '')
+          .map((r, i) => {
+            const type = (r[2] || 'text').toLowerCase();
+            let items = [];
+            if (type === 'checklist') {
+              try { items = JSON.parse(r[3] || '[]'); } catch (e) {
+                items = String(r[3] || '').split('\n').filter(Boolean).map((t, idx) => ({ id: `ci-${idx}`, text: t, checked: false }));
+              }
+            }
+            return {
+              id: r[0] || `n-${i + 1}`,
+              title: r[1] || 'Note',
+              type,
+              content: r[3] || '',
+              items,
+              pinned: String(r[4]).toUpperCase() === 'TRUE',
+              updatedAt: r[5] || ''
+            };
+          });
+
+        appState.lastSyncedAt = new Date().toISOString();
+        saveLocalState();
+        renderAll();
+        updateSyncUI('synced', 'Synced');
+      } catch (err) {
+        console.error('Sync pull error:', err);
+        updateSyncUI('error', 'Offline');
+      }
+    }
+
+    function schedulePushToGoogleSheets() {
+      saveLocalState();
+      const cfg = getSyncConfig();
+      if (!cfg || !cfg.sheetId) return;
+      updateSyncUI('syncing', 'Saving…');
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+      syncDebounceTimer = setTimeout(() => {
+        pushAllToGoogleSheets();
+      }, 650);
+    }
+
+    async function pushAllToGoogleSheets() {
+      const cfg = getSyncConfig();
+      if (!cfg || !cfg.sheetId) return;
+      try {
+        const token = await getGoogleAccessToken(cfg);
+
+        // Clear and write all 4 tabs cleanly so deleted/cleared rows don't linger
+        await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchClear`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ranges: [
+              "'Grocery List'!A2:F500",
+              "'Recipes'!A2:J100",
+              "'Meal Plan'!A2:G100",
+              "'Notes'!A2:F200"
+            ]
+          })
+        });
+
+        const groceryValues = appState.grocery.map((g, i) => [
+          g.id || `g-${i + 1}`,
+          g.section || 'Dry Goods / Pantry',
+          g.item || '',
+          g.checked ? 'TRUE' : 'FALSE',
+          String(g.sortOrder || i + 1),
+          g.updatedAt || new Date().toISOString()
+        ]);
+
+        const recipeValues = appState.recipes.map((r, i) => [
+          r.id || `r-${i + 1}`,
+          r.title || '',
+          r.active ? 'TRUE' : 'FALSE',
+          String(r.baseServings || 4),
+          String(r.currentServings || r.baseServings || 4),
+          r.prepTime || '',
+          r.cookTime || '',
+          r.notes || '',
+          JSON.stringify(r.ingredients || []),
+          JSON.stringify(r.steps || [])
+        ]);
+
+        const mealValues = appState.meals.map((m, i) => [
+          m.id || `m-${i + 1}`,
+          m.day || '',
+          m.name || '',
+          m.time || '',
+          m.difficulty || '',
+          m.notes || '',
+          m.recipeId || ''
+        ]);
+
+        const noteValues = appState.notes.map((n, i) => [
+          n.id || `n-${i + 1}`,
+          n.title || '',
+          n.type || 'text',
+          n.type === 'checklist' ? JSON.stringify(n.items || []) : (n.content || ''),
+          n.pinned ? 'TRUE' : 'FALSE',
+          n.updatedAt || new Date().toISOString()
+        ]);
+
+        const dataPayload = [];
+        if (groceryValues.length > 0) dataPayload.push({ range: "'Grocery List'!A2", values: groceryValues });
+        if (recipeValues.length > 0)  dataPayload.push({ range: "'Recipes'!A2", values: recipeValues });
+        if (mealValues.length > 0)    dataPayload.push({ range: "'Meal Plan'!A2", values: mealValues });
+        if (noteValues.length > 0)    dataPayload.push({ range: "'Notes'!A2", values: noteValues });
+
+        if (dataPayload.length > 0) {
+          const resp = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchUpdate`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              valueInputOption: 'USER_ENTERED',
+              data: dataPayload
+            })
+          });
+          if (!resp.ok) throw new Error(`Sheets write HTTP ${resp.status}`);
+        }
+
+        appState.lastSyncedAt = new Date().toISOString();
+        saveLocalState();
+        updateSyncUI('synced', 'Synced');
+      } catch (err) {
+        console.error('Sync push error:', err);
+        updateSyncUI('error', 'Saved Locally');
+      }
+    }
+
+    /********************************************************************
+     * LOCAL PERSISTENCE & RENDERING
+     ********************************************************************/
+    function loadLocalState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.STATE);
+        if (raw) appState = Object.assign(appState, JSON.parse(raw));
+      } catch (e) {}
+      try {
+        const rawPrefs = localStorage.getItem(STORAGE_KEYS.UI_PREFS);
+        if (rawPrefs) uiPrefs = Object.assign(uiPrefs, JSON.parse(rawPrefs));
+      } catch (e) {}
+    }
+
+    function saveLocalState() {
+      localStorage.setItem(STORAGE_KEYS.STATE, JSON.stringify(appState));
+      localStorage.setItem(STORAGE_KEYS.UI_PREFS, JSON.stringify(uiPrefs));
+    }
+
+    function renderAll() {
+      renderGroceryView();
+      renderCookView();
+      renderMealsView();
+      renderNotesView();
+    }
+
+    /* 1. RENDER GROCERY VIEW */
+    function renderGroceryView() {
+      const items = appState.grocery || [];
+      const total = items.length;
+      const checkedCount = items.filter(i => i.checked).length;
+      const leftCount = total - checkedCount;
+      const pct = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
+
+      document.getElementById('grocery-progress-text').textContent = `${checkedCount} of ${total} checked`;
+      document.getElementById('grocery-remaining-text').textContent = `${leftCount} left`;
+      document.getElementById('grocery-progress-fill').style.width = `${pct}%`;
+
+      const hideBtn = document.getElementById('toggle-hide-checked-btn');
+      hideBtn.textContent = uiPrefs.hideCheckedGrocery ? 'Show Checked' : 'Hide Checked';
+
+      const container = document.getElementById('grocery-sections-container');
+      const visibleItems = uiPrefs.hideCheckedGrocery ? items.filter(i => !i.checked) : items;
+
+      if (visibleItems.length === 0) {
+        container.innerHTML = `<div class="empty-state">${total > 0 ? 'All grocery items are checked off! 🎉' : 'Your grocery list is empty. Add an item above or ask Gemini on your PC!'}</div>`;
+        return;
+      }
+
+      // Group by store section in canonical order
+      const groups = new Map();
+      for (const sec of SECTION_ORDER) groups.set(sec, []);
+      for (const item of visibleItems) {
+        const sec = item.section || 'Dry Goods / Pantry';
+        if (!groups.has(sec)) groups.set(sec, []);
+        groups.get(sec).push(item);
+      }
+
+      let html = '';
+      for (const [secName, secItems] of groups.entries()) {
+        if (secItems.length === 0) continue;
+        // Sort unchecked first, preserving order
+        const sorted = [...secItems].sort((a, b) => Number(a.checked) - Number(b.checked));
+        const uncheckedInSec = secItems.filter(i => !i.checked).length;
+        const isCollapsed = Boolean(uiPrefs.collapsedSections[secName]);
+
+        html += `
+          <div class="section-block ${isCollapsed ? 'collapsed' : ''}">
+            <div class="section-header" onclick="toggleGrocerySection('${escapeHtml(secName)}')">
+              <div class="section-title-wrap">
+                <span>${isCollapsed ? '▸' : '▾'}</span>
+                <span>${escapeHtml(secName)}</span>
+              </div>
+              <span class="section-count">${uncheckedInSec} left</span>
+            </div>
+            <div class="section-items">
+              ${sorted.map(item => `
+                <div class="grocery-row ${item.checked ? 'checked' : ''}" onclick="toggleGroceryItem('${escapeHtml(item.id)}')">
+                  <div class="checkbox-ui">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </div>
+                  <div class="grocery-text">${escapeHtml(item.item)}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    function toggleGrocerySection(secName) {
+      uiPrefs.collapsedSections[secName] = !uiPrefs.collapsedSections[secName];
+      saveLocalState();
+      renderGroceryView();
+    }
+
+    function toggleGroceryItem(id) {
+      const item = appState.grocery.find(x => x.id === id);
+      if (!item) return;
+      item.checked = !item.checked;
+      item.updatedAt = new Date().toISOString();
+      renderGroceryView();
+      schedulePushToGoogleSheets();
+    }
+
+    /* 2. RENDER COOK / RECIPE VIEW */
+    function renderCookView() {
+      const switcher = document.getElementById('recipe-switcher');
+      const content = document.getElementById('recipe-content');
+      const recipes = appState.recipes || [];
+
+      if (recipes.length === 0) {
+        switcher.innerHTML = '';
+        content.innerHTML = `<div class="empty-state">No active recipes loaded yet.<br/>Tell Gemini which meal you and Orla are making to load it here!</div>`;
+        return;
+      }
+
+      if (!uiPrefs.selectedRecipeId || !recipes.some(r => r.id === uiPrefs.selectedRecipeId)) {
+        const activeOne = recipes.find(r => r.active) || recipes[0];
+        uiPrefs.selectedRecipeId = activeOne.id;
+      }
+
+      const recipe = recipes.find(r => r.id === uiPrefs.selectedRecipeId) || recipes[0];
+
+      switcher.innerHTML = recipes.length > 1 ? recipes.map(r => `
+        <button class="recipe-pill ${r.id === recipe.id ? 'active' : ''}" onclick="selectRecipe('${escapeHtml(r.id)}')">
+          ${r.active ? '★ ' : ''}${escapeHtml(r.title)}
+        </button>
+      `).join('') : '';
+
+      const baseS = Number(recipe.baseServings) || 4;
+      const currS = Number(recipe.currentServings) || baseS;
+      const isScaled = currS !== baseS;
+
+      const prepItems = (recipe.ingredients || []).filter(i => (i.category || '').toLowerCase().includes('prep') || (i.category || '').toLowerCase().includes('mise'));
+      const ingItems = (recipe.ingredients || []).filter(i => !prepItems.includes(i));
+
+      const activeStepIdx = uiPrefs.activeStepByRecipe[recipe.id] ?? 0;
+
+      content.innerHTML = `
+        <div class="recipe-hero">
+          <h2 class="recipe-title">${escapeHtml(recipe.title)}</h2>
+          <div class="recipe-meta-chips">
+            ${recipe.prepTime ? `<span class="meta-chip">🔪 ${escapeHtml(recipe.prepTime)}</span>` : ''}
+            ${recipe.cookTime ? `<span class="meta-chip">🔥 ${escapeHtml(recipe.cookTime)}</span>` : ''}
+            <span class="meta-chip">🌱 Ovo-Lacto Veg</span>
+          </div>
+          ${recipe.notes ? `<div class="recipe-notes-banner">${escapeHtml(recipe.notes)}</div>` : ''}
+
+          <div class="scaler-bar">
+            <div class="scaler-label">
+              <span>Servings ${isScaled ? `<span style="color:var(--accent); font-size:0.78rem;">(Scaled from ${baseS})</span>` : ''}</span>
+              <span class="scaler-sub">Auto-scales ingredients &amp; step amounts</span>
+            </div>
+            <div class="scaler-controls">
+              ${isScaled ? `<button class="step-done-btn" onclick="setRecipeServings('${escapeHtml(recipe.id)}', ${baseS})">Reset</button>` : ''}
+              <button class="step-btn" onclick="changeRecipeServings('${escapeHtml(recipe.id)}', -1)">−</button>
+              <span class="servings-value">${currS}</span>
+              <button class="step-btn" onclick="changeRecipeServings('${escapeHtml(recipe.id)}', 1)">+</button>
+            </div>
+          </div>
+        </div>
+
+        ${prepItems.length > 0 ? `
+          <div class="cook-section-title">
+            <span>1. Mise en Place (Prep First)</span>
+            <span style="font-size:0.76rem; color:var(--text-muted);">${prepItems.filter(i => i.checked).length}/${prepItems.length} done</span>
+          </div>
+          <div class="section-block">
+            ${prepItems.map(item => renderRecipeIngredientRow(recipe, item, baseS, currS)).join('')}
+          </div>
+        ` : ''}
+
+        <div class="cook-section-title">
+          <span>${prepItems.length > 0 ? '2. Ingredients' : '1. Ingredients'}</span>
+          <button class="step-done-btn" onclick="resetRecipeChecks('${escapeHtml(recipe.id)}')">Reset Checks</button>
+        </div>
+        <div class="section-block">
+          ${ingItems.map(item => renderRecipeIngredientRow(recipe, item, baseS, currS)).join('')}
+        </div>
+
+        <div class="cook-section-title">
+          <span>${prepItems.length > 0 ? '3. Cooking Steps (Tap step to focus)' : '2. Cooking Steps (Tap step to focus)'}</span>
+        </div>
+        <div>
+          ${(recipe.steps || []).map((step, idx) => {
+            const isActive = idx === activeStepIdx;
+            const isDone = Boolean(step.completed);
+            return `
+              <div class="step-card ${isActive ? 'active-step' : ''} ${isDone ? 'completed-step' : ''}" onclick="focusRecipeStep('${escapeHtml(recipe.id)}', ${idx})">
+                <div class="step-card-header">
+                  <span class="step-badge">${isActive ? '▶ Current Step ' + (idx + 1) : 'Step ' + (idx + 1)}</span>
+                  <button class="step-done-btn" onclick="event.stopPropagation(); toggleRecipeStepDone('${escapeHtml(recipe.id)}', ${idx})">
+                    ${isDone ? '✓ Completed' : 'Mark Done'}
+                  </button>
+                </div>
+                <div class="step-body">
+                  ${renderStepTextWithScalingAndTimers(step.text, baseS, currS, idx)}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderRecipeIngredientRow(recipe, item, baseS, currS) {
+      const scaledQty = scaleQuantity(item.qty, baseS, currS);
+      const qtyUnit = [scaledQty, item.unit].filter(Boolean).join(' ');
+      return `
+        <div class="prep-row ${item.checked ? 'checked' : ''}" onclick="toggleRecipeIngredient('${escapeHtml(recipe.id)}', '${escapeHtml(item.id)}')">
+          <div class="checkbox-ui">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
+          <div class="prep-text">
+            ${qtyUnit ? `<span class="prep-qty">${escapeHtml(qtyUnit)}</span>` : ''}
+            <span>${escapeHtml(item.item)}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectRecipe(recipeId) {
+      uiPrefs.selectedRecipeId = recipeId;
+      saveLocalState();
+      renderCookView();
+    }
+
+    function changeRecipeServings(recipeId, delta) {
+      const r = appState.recipes.find(x => x.id === recipeId);
+      if (!r) return;
+      const next = Math.max(1, Math.min(24, (Number(r.currentServings) || Number(r.baseServings) || 4) + delta));
+      r.currentServings = next;
+      renderCookView();
+      schedulePushToGoogleSheets();
+    }
+
+    function setRecipeServings(recipeId, val) {
+      const r = appState.recipes.find(x => x.id === recipeId);
+      if (!r) return;
+      r.currentServings = val;
+      renderCookView();
+      schedulePushToGoogleSheets();
+    }
+
+    function toggleRecipeIngredient(recipeId, ingId) {
+      const r = appState.recipes.find(x => x.id === recipeId);
+      if (!r) return;
+      const ing = (r.ingredients || []).find(x => x.id === ingId);
+      if (!ing) return;
+      ing.checked = !ing.checked;
+      renderCookView();
+      schedulePushToGoogleSheets();
+    }
+
+    function focusRecipeStep(recipeId, idx) {
+      uiPrefs.activeStepByRecipe[recipeId] = idx;
+      saveLocalState();
+      renderCookView();
+    }
+
+    function toggleRecipeStepDone(recipeId, idx) {
+      const r = appState.recipes.find(x => x.id === recipeId);
+      if (!r || !r.steps || !r.steps[idx]) return;
+      r.steps[idx].completed = !r.steps[idx].completed;
+      if (r.steps[idx].completed && idx + 1 < r.steps.length) {
+        uiPrefs.activeStepByRecipe[recipeId] = idx + 1;
+      }
+      renderCookView();
+      schedulePushToGoogleSheets();
+    }
+
+    function resetRecipeChecks(recipeId) {
+      const r = appState.recipes.find(x => x.id === recipeId);
+      if (!r) return;
+      (r.ingredients || []).forEach(i => i.checked = false);
+      (r.steps || []).forEach(s => s.completed = false);
+      uiPrefs.activeStepByRecipe[recipeId] = 0;
+      renderCookView();
+      schedulePushToGoogleSheets();
+    }
+
+    /* 3. RENDER MEAL PLAN VIEW */
+    function renderMealsView() {
+      const container = document.getElementById('meals-container');
+      const meals = appState.meals || [];
+      if (meals.length === 0) {
+        container.innerHTML = `<div class="empty-state">No planned meals yet.<br/>Add one above or ask Gemini for meal suggestions!</div>`;
+        return;
+      }
+
+      container.innerHTML = meals.map(m => {
+        const hasRecipe = m.recipeId && appState.recipes.some(r => r.id === m.recipeId);
+        return `
+          <div class="meal-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <span class="meal-day-tag">${escapeHtml(m.day)}</span>
+              <button class="step-done-btn" onclick="deleteMeal('${escapeHtml(m.id)}')">✕</button>
+            </div>
+            <h3 class="meal-title">${escapeHtml(m.name)}</h3>
+            <div class="recipe-meta-chips" style="margin-bottom:6px;">
+              ${m.time ? `<span class="meta-chip">⏱ ${escapeHtml(m.time)}</span>` : ''}
+              ${m.difficulty ? `<span class="meta-chip">📊 ${escapeHtml(m.difficulty)}</span>` : ''}
+            </div>
+            ${m.notes ? `<p class="meal-notes">${escapeHtml(m.notes)}</p>` : ''}
+            ${hasRecipe ? `
+              <button class="btn-primary" style="width:100%; height:42px; margin-top:6px;" onclick="openRecipeFromMeal('${escapeHtml(m.recipeId)}')">
+                🍳 Open Kitchen Counter Recipe →
+              </button>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openRecipeFromMeal(recipeId) {
+      uiPrefs.selectedRecipeId = recipeId;
+      switchView('cook');
+    }
+
+    function deleteMeal(id) {
+      appState.meals = appState.meals.filter(m => m.id !== id);
+      renderMealsView();
+      schedulePushToGoogleSheets();
+    }
+
+    /* 4. RENDER NOTES VIEW */
+    function renderNotesView() {
+      const container = document.getElementById('notes-container');
+      const notes = appState.notes || [];
+      if (notes.length === 0) {
+        container.innerHTML = `<div class="empty-state">No notes yet. Tap "+ New Note" to create a note or checklist.</div>`;
+        return;
+      }
+
+      container.innerHTML = notes.map(n => `
+        <div class="note-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="margin:0; font-size:1.08rem; font-weight:700;">${n.pinned ? '📌 ' : ''}${escapeHtml(n.title)}</h3>
+            <button class="step-done-btn" onclick="deleteNote('${escapeHtml(n.id)}')">Delete</button>
+          </div>
+          ${n.type === 'checklist' ? `
+            <div class="section-block" style="margin-bottom:8px;">
+              ${(n.items || []).map(item => `
+                <div class="grocery-row ${item.checked ? 'checked' : ''}" onclick="toggleNoteChecklistItem('${escapeHtml(n.id)}', '${escapeHtml(item.id)}')">
+                  <div class="checkbox-ui">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  </div>
+                  <div class="grocery-text">${escapeHtml(item.text)}</div>
+                </div>
+              `).join('')}
+            </div>
+            <form style="display:flex; gap:6px;" onsubmit="addNoteChecklistItem(event, '${escapeHtml(n.id)}')">
+              <input type="text" class="quick-input" style="height:38px; font-size:0.88rem;" placeholder="Add item to ${escapeHtml(n.title)}..." required />
+              <button type="submit" class="btn-secondary" style="flex:0 0 64px; height:38px;">Add</button>
+            </form>
+          ` : `
+            <div style="white-space:pre-wrap; color:var(--text-secondary); font-size:0.95rem;">${escapeHtml(n.content)}</div>
+          `}
+        </div>
+      `).join('');
+    }
+
+    function toggleNoteChecklistItem(noteId, itemId) {
+      const note = appState.notes.find(n => n.id === noteId);
+      if (!note || !note.items) return;
+      const item = note.items.find(i => i.id === itemId);
+      if (!item) return;
+      item.checked = !item.checked;
+      note.updatedAt = new Date().toISOString();
+      renderNotesView();
+      schedulePushToGoogleSheets();
+    }
+
+    function addNoteChecklistItem(e, noteId) {
+      e.preventDefault();
+      const input = e.target.querySelector('input');
+      const val = input.value.trim();
+      if (!val) return;
+      const note = appState.notes.find(n => n.id === noteId);
+      if (!note) return;
+      note.items = note.items || [];
+      note.items.push({ id: 'ci-' + Date.now(), text: val, checked: false });
+      note.updatedAt = new Date().toISOString();
+      input.value = '';
+      renderNotesView();
+      schedulePushToGoogleSheets();
+    }
+
+    function deleteNote(id) {
+      appState.notes = appState.notes.filter(n => n.id !== id);
+      renderNotesView();
+      schedulePushToGoogleSheets();
+    }
+
+    /********************************************************************
+     * NAVIGATION, MODALS & EVENT LISTENERS
+     ********************************************************************/
+    const VIEW_TITLES = {
+      grocery: 'Grocery List',
+      cook: 'Kitchen Counter Recipe',
+      meals: 'Meal Plan',
+      notes: 'Notes & Lists'
+    };
+
+    function switchView(viewName) {
+      uiPrefs.activeView = viewName;
+      saveLocalState();
+      document.getElementById('header-title').textContent = VIEW_TITLES[viewName] || 'Pocket Kitchen';
+
+      document.querySelectorAll('.view-container').forEach(el => {
+        el.classList.toggle('active', el.id === `view-${viewName}`);
+      });
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === viewName);
+      });
+
+      // Auto-request wake lock when entering Cook view if supported
+      if (viewName === 'cook' && !wakeLockDesired) {
+        wakeLockDesired = true;
+        requestWakeLock();
+      }
+    }
+
+    function openSettingsModal() {
+      const cfg = getSyncConfig();
+      const box = document.getElementById('settings-status-box');
+      if (cfg && cfg.sheetId) {
+        box.innerHTML = `✅ <strong>Connected to Private Google Sheet</strong><br/><span style="color:var(--text-muted); font-size:0.78rem;">Sheet ID: ...${escapeHtml(cfg.sheetId.slice(-8))} • Last synced: ${appState.lastSyncedAt ? new Date(appState.lastSyncedAt).toLocaleTimeString() : 'Just now'}</span>`;
+      } else {
+        box.innerHTML = `⚠️ <strong>Not linked yet.</strong> Open the one-tap setup link from your PC or paste it below.`;
+      }
+      document.getElementById('settings-modal').classList.add('open');
+    }
+
+    function saveManualConnect() {
+      const raw = document.getElementById('manual-connect-input').value.trim();
+      if (!raw) return;
+      const tokenPart = raw.includes('#connect=') ? raw.split('#connect=')[1].trim() : raw;
+      try {
+        const cfg = decodeBase64UrlJson(tokenPart);
+        if (cfg && cfg.sheetId) {
+          saveSyncConfig(cfg);
+          document.getElementById('manual-connect-input').value = '';
+          closeModals();
+          pullFromGoogleSheets();
+        }
+      } catch (e) {
+        alert('Invalid connection link or code.');
+      }
+    }
+
+    function openAddMealModal() {
+      document.getElementById('add-meal-modal').classList.add('open');
+    }
+
+    function openAddNoteModal() {
+      document.getElementById('add-note-modal').classList.add('open');
+    }
+
+    function closeModals() {
+      document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem(STORAGE_KEYS.THEME, theme);
+      document.getElementById('meta-theme-color').setAttribute('content', theme === 'dark' ? '#0d1210' : '#ffffff');
+    }
+
+    // Wire up UI events
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+      btn.addEventListener('click', () => switchView(btn.dataset.view));
+    });
+
+    document.getElementById('wake-btn').addEventListener('click', toggleWakeLock);
+    document.getElementById('sync-pill').addEventListener('click', () => pullFromGoogleSheets());
+    document.getElementById('settings-btn').addEventListener('click', openSettingsModal);
+    document.getElementById('theme-btn').addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+    document.getElementById('grocery-add-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('grocery-input');
+      const secSelect = document.getElementById('grocery-section-select');
+      const text = input.value.trim();
+      if (!text) return;
+      appState.grocery.push({
+        id: 'g-' + Date.now(),
+        section: secSelect.value,
+        item: text,
+        checked: false,
+        sortOrder: appState.grocery.length + 1,
+        updatedAt: new Date().toISOString()
+      });
+      input.value = '';
+      renderGroceryView();
+      schedulePushToGoogleSheets();
+    });
+
+    document.getElementById('toggle-hide-checked-btn').addEventListener('click', () => {
+      uiPrefs.hideCheckedGrocery = !uiPrefs.hideCheckedGrocery;
+      saveLocalState();
+      renderGroceryView();
+    });
+
+    document.getElementById('clear-checked-btn').addEventListener('click', () => {
+      const checkedCount = appState.grocery.filter(i => i.checked).length;
+      if (checkedCount === 0) return;
+      appState.grocery = appState.grocery.filter(i => !i.checked);
+      renderGroceryView();
+      schedulePushToGoogleSheets();
+    });
+
+    document.getElementById('add-meal-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      appState.meals.push({
+        id: 'm-' + Date.now(),
+        day: document.getElementById('meal-day-input').value.trim(),
+        name: document.getElementById('meal-name-input').value.trim(),
+        time: document.getElementById('meal-time-input').value.trim(),
+        difficulty: 'Medium',
+        notes: document.getElementById('meal-notes-input').value.trim(),
+        recipeId: ''
+      });
+      e.target.reset();
+      closeModals();
+      renderMealsView();
+      schedulePushToGoogleSheets();
+    });
+
+    document.getElementById('add-note-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('note-title-input').value.trim();
+      const type = document.getElementById('note-type-input').value;
+      const content = document.getElementById('note-content-input').value.trim();
+      const items = type === 'checklist'
+        ? content.split('\n').map(s => s.trim()).filter(Boolean).map((t, i) => ({ id: `ci-${Date.now()}-${i}`, text: t, checked: false }))
+        : [];
+      appState.notes.unshift({
+        id: 'n-' + Date.now(),
+        title,
+        type,
+        content,
+        items,
+        pinned: false,
+        updatedAt: new Date().toISOString()
+      });
+      e.target.reset();
+      closeModals();
+      renderNotesView();
+      schedulePushToGoogleSheets();
+    });
+
+    // Boot Application
+    (function init() {
+      const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || 'dark';
+      applyTheme(savedTheme);
+      loadLocalState();
+      checkUrlHashForConnection();
+      switchView(uiPrefs.activeView || 'grocery');
+      renderAll();
+      pullFromGoogleSheets();
+
+      // Re-sync automatically when returning to the app on phone
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          pullFromGoogleSheets();
+        }
+      });
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      }
+    })();
+  </script>
+</body>
+</html>
