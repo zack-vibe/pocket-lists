@@ -7,6 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://oauth2.googleapis.com https://sheets.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
   <title>Pocket Kitchen &amp; Lists</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
@@ -1077,7 +1078,7 @@
           <strong>Offline / Local Mode</strong><br/>
           <span>Open your one-tap connection link from PC to enable live Google Sheets sync.</span>
         </div>
-        <button class="btn-secondary" style="flex:0 0 auto; height:36px; padding:0 12px;" onclick="openSettingsModal()">Link</button>
+        <button class="btn-secondary" style="flex:0 0 auto; height:36px; padding:0 12px;" data-action="open-settings-modal">Link</button>
       </div>
 
       <div class="progress-card">
@@ -1115,7 +1116,7 @@
     <section class="view-container" id="view-cook">
       <div id="recipe-gallery-view">
         <div style="margin-bottom:10px;">
-          <input type="search" class="quick-input" style="width:100%;" id="recipe-search-input" placeholder="🔍 Search recipes or ingredients (e.g. sweet potato, soup)..." oninput="onRecipeSearchInput(this.value)" />
+          <input type="search" class="quick-input" style="width:100%;" id="recipe-search-input" placeholder="🔍 Search recipes or ingredients (e.g. sweet potato, soup)..." />
         </div>
         <div class="recipe-switcher" id="recipe-category-pills"></div>
         <div id="recipe-gallery-list"></div>
@@ -1129,7 +1130,7 @@
     <section class="view-container" id="view-meals">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <span style="font-size:0.9rem; color:var(--text-secondary); font-weight:600;">Upcoming Planned Meals</span>
-        <button class="btn-primary" style="height:38px; font-size:0.85rem;" onclick="openAddMealModal()">+ Add Meal</button>
+        <button class="btn-primary" style="height:38px; font-size:0.85rem;" data-action="open-add-meal-modal">+ Add Meal</button>
       </div>
       <div id="meals-container"></div>
     </section>
@@ -1138,7 +1139,7 @@
     <section class="view-container" id="view-notes">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <span style="font-size:0.9rem; color:var(--text-secondary); font-weight:600;">Notes &amp; Secondary Lists</span>
-        <button class="btn-primary" style="height:38px; font-size:0.85rem;" onclick="openAddNoteModal()">+ New Note</button>
+        <button class="btn-primary" style="height:38px; font-size:0.85rem;" data-action="open-add-note-modal">+ New Note</button>
       </div>
       <div id="notes-container"></div>
     </section>
@@ -1182,15 +1183,15 @@
       </div>
       <div class="form-group">
         <label class="form-label">Kitchen Timer Sound &amp; Haptic Test</label>
-        <button type="button" class="btn-secondary" style="width:100%; height:40px;" onclick="testTimerChimeAndBuzz()">🔔 Test Gentle Chime &amp; Vibration</button>
+        <button type="button" class="btn-secondary" style="width:100%; height:40px;" data-action="test-timer-alert">🔔 Test Gentle Chime &amp; Vibration</button>
       </div>
       <div class="form-group">
         <label class="form-label">Paste Connection Code (if linking manually)</label>
         <input type="text" class="quick-input" style="width:100%;" id="manual-connect-input" placeholder="Paste #connect=... code or link" />
       </div>
       <div style="display:flex; gap:8px; margin-top:16px;">
-        <button class="btn-primary" style="flex:1;" onclick="saveManualConnect()">Save &amp; Sync</button>
-        <button class="btn-secondary" style="flex:1;" onclick="closeModals()">Close</button>
+        <button class="btn-primary" style="flex:1;" data-action="save-manual-connect">Save &amp; Sync</button>
+        <button class="btn-secondary" style="flex:1;" data-action="close-modals">Close</button>
       </div>
     </div>
   </div>
@@ -1218,7 +1219,7 @@
         </div>
         <div style="display:flex; gap:8px;">
           <button type="submit" class="btn-primary" style="flex:1;">Save Meal</button>
-          <button type="button" class="btn-secondary" style="flex:1;" onclick="closeModals()">Cancel</button>
+          <button type="button" class="btn-secondary" style="flex:1;" data-action="close-modals">Cancel</button>
         </div>
       </form>
     </div>
@@ -1246,7 +1247,7 @@
         </div>
         <div style="display:flex; gap:8px;">
           <button type="submit" class="btn-primary" style="flex:1;">Save Note</button>
-          <button type="button" class="btn-secondary" style="flex:1;" onclick="closeModals()">Cancel</button>
+          <button type="button" class="btn-secondary" style="flex:1;" data-action="close-modals">Cancel</button>
         </div>
       </form>
     </div>
@@ -1259,8 +1260,10 @@
     const STORAGE_KEYS = {
       STATE: 'pocket_kitchen_state_v1',
       SYNC_CFG: 'pocket_kitchen_sync_cfg_v1',
+      SYNC_META: 'pocket_kitchen_sync_meta_v1',
       THEME: 'pocket_kitchen_theme_v1',
-      UI_PREFS: 'pocket_kitchen_ui_prefs_v1'
+      UI_PREFS: 'pocket_kitchen_ui_prefs_v1',
+      TIMERS: 'pocket_kitchen_timers_v1'
     };
 
     const SECTION_ORDER = [
@@ -1297,7 +1300,18 @@
       recipeCategoryFilter: 'all',
       recipeSearchQuery: '',
       selectedRecipeId: null,
-      activeStepByRecipe: {}
+      activeStepByRecipe: {},
+      cookingProgress: {} // { [recipeId]: { servings, checkedIngredients: {}, completedSteps: {}, activeStep: 0 } }
+    };
+
+    let syncMeta = {
+      dirtyTabs: [], // ['grocery', 'recipes', 'meals', 'notes']
+      deletedIds: {
+        grocery: {},
+        meals: {},
+        notes: {}
+      },
+      pinnedRecipes: {} // { [recipeId]: boolean }
     };
 
     let activeTimers = [];
@@ -1308,6 +1322,8 @@
     let cachedAccessToken = null;
     let cachedTokenExpiry = 0;
     let syncDebounceTimer = null;
+    let isSyncInFlight = false;
+    let resyncQueued = false;
 
     /********************************************************************
      * CLEAN CULINARY FRACTION FORMATTER & DYNAMIC SERVING SCALER
@@ -1323,6 +1339,11 @@
       { dec: 0.75,  str: '¾' },
       { dec: 0.875, str: '⅞' }
     ];
+
+    const UNICODE_FRAC_VALUES = {
+      '⅛': 0.125, '¼': 0.25, '⅓': 1 / 3, '⅜': 0.375,
+      '½': 0.5,   '⅝': 0.625, '⅔': 2 / 3, '¾': 0.75, '⅞': 0.875
+    };
 
     function formatCulinaryNumber(val) {
       if (val === null || val === undefined || isNaN(val) || val <= 0) return '';
@@ -1359,15 +1380,39 @@
       return formatCulinaryNumber(scaled);
     }
 
+    function parseCulinaryNumberString(numStr) {
+      let s = String(numStr || '').trim();
+      if (!s) return NaN;
+      for (const [ch, val] of Object.entries(UNICODE_FRAC_VALUES)) {
+        if (s === ch) return val;
+        if (s.includes(ch)) {
+          const wholePart = parseFloat(s.replace(ch, '').trim()) || 0;
+          return wholePart + val;
+        }
+      }
+      const mixedMatch = s.match(/^(\d+)\s+(\d+)\s*\/\s*(\d+)$/);
+      if (mixedMatch) {
+        const denom = parseFloat(mixedMatch[3]) || 1;
+        return parseFloat(mixedMatch[1]) + (parseFloat(mixedMatch[2]) / denom);
+      }
+      const fracMatch = s.match(/^(\d+)\s*\/\s*(\d+)$/);
+      if (fracMatch) {
+        const denom = parseFloat(fracMatch[2]) || 1;
+        return parseFloat(fracMatch[1]) / denom;
+      }
+      return parseFloat(s);
+    }
+
     function parseDurationToSeconds(timeStr) {
-      const m = String(timeStr || '').match(/(\d+(?:\s*[-–]\s*\d+)?)\s*(minutes|minute|mins|min|seconds|second|secs|sec|hours|hour|hr)/i);
+      const m = String(timeStr || '').match(/((?:\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?(?:\s*[¼½¾⅓⅔⅛⅜⅝⅞])?|[¼½¾⅓⅔⅛⅜⅝⅞])(?:\s*(?:[-–]|to)\s*(?:\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?(?:\s*[¼½¾⅓⅔⅛⅜⅝⅞])?|[¼½¾⅓⅔⅛⅜⅝⅞]))?)\s*(hours|hour|hrs|hr|minutes|minute|mins|min|seconds|second|secs|sec)/i);
       if (!m) return 60;
-      const nums = m[1].split(/[-–]/).map(n => parseFloat(n.trim()));
-      const primaryVal = nums[nums.length - 1] || 1;
+      // For ranges like "25-30 min", use the lower number (first check-in point) so nothing burns!
+      const rangeParts = m[1].split(/\s*(?:[-–]|\bto\b)\s*/i);
+      const primaryVal = parseCulinaryNumberString(rangeParts[0]) || 1;
       const u = m[2].toLowerCase();
-      if (u.startsWith('h')) return Math.round(primaryVal * 3600);
-      if (u.startsWith('s')) return Math.round(primaryVal);
-      return Math.round(primaryVal * 60);
+      if (u.startsWith('h')) return Math.max(1, Math.round(primaryVal * 3600));
+      if (u.startsWith('s')) return Math.max(1, Math.round(primaryVal));
+      return Math.max(1, Math.round(primaryVal * 60));
     }
 
     function inferTimerActionLabel(rawText, matchStr, stepIndex, explicitStepLabel) {
@@ -1431,20 +1476,21 @@
       html = html.replace(/\[\[([^\]]+)\]\]/g, (_, inner) => {
         const parts = inner.split('|').map(s => s.trim());
         const durationText = parts[0] || '5 minutes';
-        const customAction = parts[1] || stepTimerLabel || `Step ${stepIndex + 1}`;
+        const customAction = parts[1] || escapeHtml(stepTimerLabel) || `Step ${stepIndex + 1}`;
         const seconds = parseDurationToSeconds(durationText);
         const fullLabel = customAction.includes('(') ? customAction : `${customAction} (${durationText})`;
-        const chipHtml = `<button type="button" class="timer-chip" onclick="event.stopPropagation(); startKitchenTimer(${seconds}, '${fullLabel.replace(/'/g, "\\'")}')">⏱ ${durationText}</button>`;
+        const chipHtml = `<button type="button" class="timer-chip" data-action="start-timer" data-seconds="${seconds}" data-label="${ fullLabel }">⏱ ${durationText}</button>`;
         const token = `__TIMER_CHIP_${explicitTimerPlaceholders.length}__`;
         explicitTimerPlaceholders.push(chipHtml);
         return token;
       });
 
-      // 3. Auto-detect any remaining plain-text time mentions
-      html = html.replace(/\b(\d+(?:\s*[-–]\s*\d+)?)\s*(minutes|minute|mins|min|seconds|second|secs|sec|hours|hour|hr)\b/gi, (match) => {
+      // 3. Auto-detect any remaining plain-text time mentions (including "1 1/2 hours", "hrs", "25-30 min")
+      const durationRegex = /(?:^|(?<=\s))((?:\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?(?:\s*[¼½¾⅓⅔⅛⅜⅝⅞])?|[¼½¾⅓⅔⅛⅜⅝⅞])(?:\s*(?:[-–]|to)\s*(?:\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?(?:\s*[¼½¾⅓⅔⅛⅜⅝⅞])?|[¼½¾⅓⅔⅛⅜⅝⅞]))?)\s*(hours|hour|hrs|hr|minutes|minute|mins|min|seconds|second|secs|sec)\b/gi;
+      html = html.replace(durationRegex, (match) => {
         const seconds = parseDurationToSeconds(match);
-        const safeLabel = inferTimerActionLabel(rawText, match, stepIndex, stepTimerLabel);
-        return `<button type="button" class="timer-chip" onclick="event.stopPropagation(); startKitchenTimer(${seconds}, '${safeLabel.replace(/'/g, "\\'")}')">⏱ ${match}</button>`;
+        const safeLabel = escapeHtml(inferTimerActionLabel(rawText, match, stepIndex, stepTimerLabel));
+        return `<button type="button" class="timer-chip" data-action="start-timer" data-seconds="${seconds}" data-label="${safeLabel}">⏱ ${match}</button>`;
       });
 
       explicitTimerPlaceholders.forEach((chip, i) => {
@@ -1455,11 +1501,12 @@
     }
 
     function escapeHtml(str) {
-      return String(str || '')
+      return String(str ?? '')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
     /********************************************************************
@@ -1532,24 +1579,56 @@
       } catch (e) {}
     }
 
+    function saveTimersToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.TIMERS, JSON.stringify(activeTimers));
+      } catch (e) {}
+    }
+
+    function loadTimersFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.TIMERS);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return;
+        const now = Date.now();
+        activeTimers = parsed.map(t => {
+          if (t.running && !t.finished && t.endTime) {
+            const rem = Math.max(0, Math.ceil((t.endTime - now) / 1000));
+            return Object.assign({}, t, {
+              remainingSeconds: rem,
+              finished: rem === 0,
+              running: rem > 0
+            });
+          }
+          return t;
+        });
+        if (activeTimers.length > 0) {
+          ensureTimerLoop();
+          renderTimers();
+        }
+      } catch (e) {}
+    }
+
     function startKitchenTimer(durationSeconds, label) {
       ensureAudioAndNotificationsUnlocked();
       try {
-        // Immediate tactile feedback on tap (userActivation is active here)
         if (navigator.vibrate) navigator.vibrate(35);
       } catch (e) {}
 
-      const id = 't-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+      const now = Date.now();
+      const id = 't-' + now + '-' + Math.random().toString(36).slice(2, 6);
       activeTimers.push({
         id,
         label,
         totalSeconds: durationSeconds,
         remainingSeconds: durationSeconds,
+        endTime: now + durationSeconds * 1000,
         running: true,
         finished: false,
-        lastTick: Date.now(),
         lastAlertAt: 0
       });
+      saveTimersToStorage();
       ensureTimerLoop();
       renderTimers();
     }
@@ -1559,30 +1638,31 @@
       timerInterval = setInterval(() => {
         const now = Date.now();
         let anyChanged = false;
+        let stateMutated = false;
         for (const t of activeTimers) {
           if (t.running && !t.finished) {
-            const elapsed = Math.floor((now - t.lastTick) / 1000);
-            if (elapsed >= 1) {
-              t.remainingSeconds = Math.max(0, t.remainingSeconds - elapsed);
-              t.lastTick = now;
+            if (!t.endTime) t.endTime = now + (t.remainingSeconds || 0) * 1000;
+            const nextRem = Math.max(0, Math.ceil((t.endTime - now) / 1000));
+            if (nextRem !== t.remainingSeconds) {
+              t.remainingSeconds = nextRem;
               anyChanged = true;
               if (t.remainingSeconds === 0) {
                 t.finished = true;
                 t.running = false;
+                t.endTime = null;
                 t.lastAlertAt = now;
+                stateMutated = true;
                 playGentleKitchenChime();
                 triggerSystemHapticNotification(t);
               }
             }
-          } else {
-            t.lastTick = now;
-            if (t.finished && now - (t.lastAlertAt || 0) >= 4500) {
-              t.lastAlertAt = now;
-              playGentleKitchenChime();
-              triggerSystemHapticNotification(t);
-            }
+          } else if (t.finished && now - (t.lastAlertAt || 0) >= 4500) {
+            t.lastAlertAt = now;
+            playGentleKitchenChime();
+            triggerSystemHapticNotification(t);
           }
         }
+        if (stateMutated) saveTimersToStorage();
         if (activeTimers.length === 0) {
           clearInterval(timerInterval);
           timerInterval = null;
@@ -1693,8 +1773,15 @@
         dismissTimer(id);
         return;
       }
-      t.running = !t.running;
-      t.lastTick = Date.now();
+      if (t.running) {
+        t.remainingSeconds = Math.max(0, Math.ceil(((t.endTime || Date.now()) - Date.now()) / 1000));
+        t.running = false;
+        t.endTime = null;
+      } else {
+        t.running = true;
+        t.endTime = Date.now() + (t.remainingSeconds || 0) * 1000;
+      }
+      saveTimersToStorage();
       renderTimers();
     }
 
@@ -1702,16 +1789,22 @@
       const t = activeTimers.find(x => x.id === id);
       if (!t) return;
       clearSystemTimerNotification(id);
-      t.remainingSeconds += 60;
+      const baseRem = t.running && t.endTime
+        ? Math.max(0, Math.ceil((t.endTime - Date.now()) / 1000))
+        : (t.remainingSeconds || 0);
+      t.remainingSeconds = baseRem + 60;
+      t.endTime = Date.now() + t.remainingSeconds * 1000;
       t.finished = false;
       t.running = true;
-      t.lastTick = Date.now();
+      saveTimersToStorage();
+      ensureTimerLoop();
       renderTimers();
     }
 
     function dismissTimer(id) {
       clearSystemTimerNotification(id);
       activeTimers = activeTimers.filter(x => x.id !== id);
+      saveTimersToStorage();
       renderTimers();
     }
 
@@ -1722,22 +1815,22 @@
         return;
       }
       dock.innerHTML = activeTimers.map(t => `
-        <div class="timer-bar ${t.finished ? 'finished' : ''}" onclick="${t.finished ? `dismissTimer('${t.id}')` : ''}">
+        <div class="timer-bar ${t.finished ? 'finished' : ''}" ${t.finished ? `data-action="dismiss-timer" data-id="${escapeHtml(t.id)}"` : ''}>
           <div style="min-width:0; flex:1;">
             <div style="font-size:0.84rem; color:var(--text-primary); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(t.label)}</div>
             <div class="timer-countdown">${t.finished ? '🔔 Time’s Up! (Tap OK)' : formatClock(t.remainingSeconds)}</div>
           </div>
-          <div style="display:flex; gap:6px; flex-shrink:0;" onclick="event.stopPropagation();">
-            <button class="step-done-btn" onclick="addMinuteToTimer('${t.id}')">+1m</button>
-            <button class="step-done-btn" onclick="toggleTimerPause('${t.id}')">${t.finished ? 'OK' : (t.running ? 'Pause' : 'Resume')}</button>
-            <button class="step-done-btn" onclick="dismissTimer('${t.id}')">✕</button>
+          <div style="display:flex; gap:6px; flex-shrink:0;">
+            <button type="button" class="step-done-btn" data-action="add-timer-minute" data-id="${escapeHtml(t.id)}">+1m</button>
+            <button type="button" class="step-done-btn" data-action="toggle-timer-pause" data-id="${escapeHtml(t.id)}">${t.finished ? 'OK' : (t.running ? 'Pause' : 'Resume')}</button>
+            <button type="button" class="step-done-btn" data-action="dismiss-timer" data-id="${escapeHtml(t.id)}">✕</button>
           </div>
         </div>
       `).join('');
     }
 
     /********************************************************************
-     * GOOGLE SHEETS TWO-WAY SYNC ENGINE (Private LocalStorage Config)
+     * GOOGLE SHEETS TWO-WAY SYNC ENGINE (Merge-by-ID & Atomic RAW Writes)
      ********************************************************************/
     function getSyncConfig() {
       try {
@@ -1811,7 +1904,140 @@
       label.textContent = text;
     }
 
-    async function pullFromGoogleSheets() {
+    function markTabDirty(tabName) {
+      if (!syncMeta.dirtyTabs.includes(tabName)) {
+        syncMeta.dirtyTabs.push(tabName);
+      }
+      saveLocalState();
+    }
+
+    function recordDeletedId(tabName, id) {
+      if (!id) return;
+      if (!syncMeta.deletedIds[tabName]) syncMeta.deletedIds[tabName] = {};
+      syncMeta.deletedIds[tabName][id] = new Date().toISOString();
+    }
+
+    function parseRemoteTabs(valueRanges) {
+      // 1. Grocery List
+      const groceryRaw = (valueRanges[0] && valueRanges[0].values) || [];
+      const grocery = groceryRaw
+        .filter(r => r && r[2] && String(r[2]).trim() !== '')
+        .map((r, i) => ({
+          id: r[0] || `g-${i + 1}`,
+          section: r[1] || 'Dry Goods / Pantry',
+          item: r[2] || '',
+          checked: String(r[3]).toUpperCase() === 'TRUE',
+          sortOrder: Number(r[4]) || i + 1,
+          updatedAt: r[5] || ''
+        }));
+
+      // 2. Recipes
+      const recipeRaw = (valueRanges[1] && valueRanges[1].values) || [];
+      const recipes = recipeRaw
+        .filter(r => r && r[1] && String(r[1]).trim() !== '')
+        .map((r, i) => {
+          let ingredients = [];
+          let steps = [];
+          try { ingredients = JSON.parse(r[8] || '[]'); } catch (e) {}
+          try { steps = JSON.parse(r[9] || '[]'); } catch (e) {}
+          return {
+            id: r[0] || `r-${i + 1}`,
+            title: r[1] || 'Untitled Recipe',
+            active: String(r[2]).toUpperCase() === 'TRUE',
+            baseServings: Number(r[3]) || 4,
+            currentServings: Number(r[4]) || Number(r[3]) || 4,
+            prepTime: r[5] || '',
+            cookTime: r[6] || '',
+            notes: r[7] || '',
+            ingredients,
+            steps
+          };
+        });
+
+      // 3. Meal Plan
+      const mealRaw = (valueRanges[2] && valueRanges[2].values) || [];
+      const meals = mealRaw
+        .filter(r => r && r[2] && String(r[2]).trim() !== '')
+        .map((r, i) => ({
+          id: r[0] || `m-${i + 1}`,
+          day: r[1] || 'Planned',
+          name: r[2] || '',
+          time: r[3] || '',
+          difficulty: r[4] || '',
+          notes: r[5] || '',
+          recipeId: r[6] || ''
+        }));
+
+      // 4. Notes
+      const noteRaw = (valueRanges[3] && valueRanges[3].values) || [];
+      const notes = noteRaw
+        .filter(r => r && r[1] && String(r[1]).trim() !== '')
+        .map((r, i) => {
+          const type = (r[2] || 'text').toLowerCase();
+          let items = [];
+          if (type === 'checklist') {
+            try { items = JSON.parse(r[3] || '[]'); } catch (e) {
+              items = String(r[3] || '').split('\n').filter(Boolean).map((t, idx) => ({ id: `ci-${idx}`, text: t, checked: false }));
+            }
+          }
+          return {
+            id: r[0] || `n-${i + 1}`,
+            title: r[1] || 'Note',
+            type,
+            content: r[3] || '',
+            items,
+            pinned: String(r[4]).toUpperCase() === 'TRUE',
+            updatedAt: r[5] || ''
+          };
+        });
+
+      return {
+        grocery, groceryRawCount: groceryRaw.length,
+        recipes, recipeRawCount: recipeRaw.length,
+        meals,   mealRawCount: mealRaw.length,
+        notes,   noteRawCount: noteRaw.length
+      };
+    }
+
+    function mergeByIdAndTimestamp(localList, remoteList, deletedMap) {
+      const mergedMap = new Map();
+      const dels = deletedMap || {};
+
+      for (const rem of remoteList) {
+        const delTs = dels[rem.id];
+        if (delTs && (!rem.updatedAt || rem.updatedAt <= delTs)) {
+          continue; // Deleted locally after remote row was created/updated
+        }
+        mergedMap.set(rem.id, rem);
+      }
+
+      for (const loc of localList) {
+        if (dels[loc.id]) continue;
+        const existing = mergedMap.get(loc.id);
+        if (!existing) {
+          mergedMap.set(loc.id, loc);
+        } else {
+          const locTime = loc.updatedAt || '';
+          const remTime = existing.updatedAt || '';
+          if (!remTime || locTime >= remTime) {
+            mergedMap.set(loc.id, loc);
+          }
+        }
+      }
+
+      return Array.from(mergedMap.values());
+    }
+
+    function padRowsWithBlanks(rows, width, targetCount) {
+      const padded = rows.slice();
+      const blankRow = new Array(width).fill('');
+      while (padded.length < targetCount) {
+        padded.push(blankRow);
+      }
+      return padded;
+    }
+
+    async function syncWithGoogleSheets(options = {}) {
       const cfg = getSyncConfig();
       if (!cfg || !cfg.sheetId) {
         document.getElementById('unconnected-notice').style.display = 'flex';
@@ -1819,8 +2045,17 @@
         return;
       }
 
+      if (isSyncInFlight) {
+        resyncQueued = true;
+        return;
+      }
+
+      isSyncInFlight = true;
       document.getElementById('unconnected-notice').style.display = 'none';
-      updateSyncUI('syncing', 'Syncing…');
+      const hasDirty = syncMeta.dirtyTabs.length > 0;
+      if (!options.silent || hasDirty) {
+        updateSyncUI('syncing', hasDirty ? 'Saving…' : 'Syncing…');
+      }
 
       try {
         const token = await getGoogleAccessToken(cfg);
@@ -1831,199 +2066,164 @@
           encodeURIComponent("'Notes'!A2:F200")
         ].map(r => `ranges=${r}`).join('&');
 
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchGet?${ranges}`;
-        const resp = await fetch(url, {
+        const readUrl = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchGet?${ranges}`;
+        const readResp = await fetch(readUrl, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!resp.ok) throw new Error(`Sheets read HTTP ${resp.status}`);
-        const data = await resp.json();
-        const valueRanges = data.valueRanges || [];
+        if (!readResp.ok) throw new Error(`Sheets read HTTP ${readResp.status}`);
+        const readData = await readResp.json();
+        const remote = parseRemoteTabs(readData.valueRanges || []);
 
-        // 1. Parse Grocery List
-        const groceryRows = (valueRanges[0] && valueRanges[0].values) || [];
-        appState.grocery = groceryRows
-          .filter(r => r[2] && String(r[2]).trim() !== '')
-          .map((r, i) => ({
-            id: r[0] || `g-${i + 1}`,
-            section: r[1] || 'Dry Goods / Pantry',
-            item: r[2] || '',
-            checked: String(r[3]).toUpperCase() === 'TRUE',
-            sortOrder: Number(r[4]) || i + 1,
-            updatedAt: r[5] || ''
-          }));
+        const dirtySnapshot = [...syncMeta.dirtyTabs];
+        const writePayload = [];
 
-        // 2. Parse Recipes
-        const recipeRows = (valueRanges[1] && valueRanges[1].values) || [];
-        appState.recipes = recipeRows
-          .filter(r => r[1] && String(r[1]).trim() !== '')
-          .map((r, i) => {
-            let ingredients = [];
-            let steps = [];
-            try { ingredients = JSON.parse(r[8] || '[]'); } catch (e) {}
-            try { steps = JSON.parse(r[9] || '[]'); } catch (e) {}
-            return {
-              id: r[0] || `r-${i + 1}`,
-              title: r[1] || 'Untitled Recipe',
-              active: String(r[2]).toUpperCase() === 'TRUE',
-              baseServings: Number(r[3]) || 4,
-              currentServings: Number(r[4]) || Number(r[3]) || 4,
-              prepTime: r[5] || '',
-              cookTime: r[6] || '',
-              notes: r[7] || '',
-              ingredients,
-              steps
-            };
+        // 1. Grocery List: merge if dirty, otherwise accept remote
+        if (dirtySnapshot.includes('grocery')) {
+          appState.grocery = mergeByIdAndTimestamp(appState.grocery, remote.grocery, syncMeta.deletedIds.grocery);
+          const rows = appState.grocery.map((g, i) => [
+            g.id || `g-${i + 1}`,
+            g.section || 'Dry Goods / Pantry',
+            g.item || '',
+            g.checked ? 'TRUE' : 'FALSE',
+            String(g.sortOrder || i + 1),
+            g.updatedAt || new Date().toISOString()
+          ]);
+          const targetLen = Math.max(remote.groceryRawCount, rows.length) + 15;
+          writePayload.push({
+            range: "'Grocery List'!A2",
+            values: padRowsWithBlanks(rows, 6, targetLen)
           });
+        } else {
+          appState.grocery = remote.grocery;
+          syncMeta.deletedIds.grocery = {};
+        }
 
-        // 3. Parse Meal Plan
-        const mealRows = (valueRanges[2] && valueRanges[2].values) || [];
-        appState.meals = mealRows
-          .filter(r => r[2] && String(r[2]).trim() !== '')
-          .map((r, i) => ({
-            id: r[0] || `m-${i + 1}`,
-            day: r[1] || 'Planned',
-            name: r[2] || '',
-            time: r[3] || '',
-            difficulty: r[4] || '',
-            notes: r[5] || '',
-            recipeId: r[6] || ''
-          }));
+        // 2. Recipes: preserve remote recipes if non-empty; apply any local Pin toggles
+        if (remote.recipes.length > 0) {
+          if (dirtySnapshot.includes('recipes')) {
+            const pinnedMap = syncMeta.pinnedRecipes || {};
+            appState.recipes = remote.recipes.map(r => ({
+              ...r,
+              active: Object.prototype.hasOwnProperty.call(pinnedMap, r.id) ? Boolean(pinnedMap[r.id]) : r.active
+            }));
+            const rows = appState.recipes.map((r, i) => [
+              r.id || `r-${i + 1}`,
+              r.title || '',
+              r.active ? 'TRUE' : 'FALSE',
+              String(r.baseServings || 4),
+              String(r.currentServings || r.baseServings || 4),
+              r.prepTime || '',
+              r.cookTime || '',
+              r.notes || '',
+              JSON.stringify(r.ingredients || []),
+              JSON.stringify(r.steps || [])
+            ]);
+            const targetLen = Math.max(remote.recipeRawCount, rows.length) + 5;
+            writePayload.push({
+              range: "'Recipes'!A2",
+              values: padRowsWithBlanks(rows, 10, targetLen)
+            });
+          } else {
+            appState.recipes = remote.recipes;
+            syncMeta.pinnedRecipes = {};
+          }
+        }
 
-        // 4. Parse Notes
-        const noteRows = (valueRanges[3] && valueRanges[3].values) || [];
-        appState.notes = noteRows
-          .filter(r => r[1] && String(r[1]).trim() !== '')
-          .map((r, i) => {
-            const type = (r[2] || 'text').toLowerCase();
-            let items = [];
-            if (type === 'checklist') {
-              try { items = JSON.parse(r[3] || '[]'); } catch (e) {
-                items = String(r[3] || '').split('\n').filter(Boolean).map((t, idx) => ({ id: `ci-${idx}`, text: t, checked: false }));
-              }
-            }
-            return {
-              id: r[0] || `n-${i + 1}`,
-              title: r[1] || 'Note',
-              type,
-              content: r[3] || '',
-              items,
-              pinned: String(r[4]).toUpperCase() === 'TRUE',
-              updatedAt: r[5] || ''
-            };
+        // 3. Meal Plan: merge if dirty, otherwise accept remote
+        if (dirtySnapshot.includes('meals')) {
+          appState.meals = mergeByIdAndTimestamp(appState.meals, remote.meals, syncMeta.deletedIds.meals);
+          const rows = appState.meals.map((m, i) => [
+            m.id || `m-${i + 1}`,
+            m.day || '',
+            m.name || '',
+            m.time || '',
+            m.difficulty || '',
+            m.notes || '',
+            m.recipeId || ''
+          ]);
+          const targetLen = Math.max(remote.mealRawCount, rows.length) + 10;
+          writePayload.push({
+            range: "'Meal Plan'!A2",
+            values: padRowsWithBlanks(rows, 7, targetLen)
           });
+        } else {
+          appState.meals = remote.meals;
+          syncMeta.deletedIds.meals = {};
+        }
 
-        appState.lastSyncedAt = new Date().toISOString();
-        saveLocalState();
-        renderAll();
-        updateSyncUI('synced', 'Synced');
-      } catch (err) {
-        console.error('Sync pull error:', err);
-        updateSyncUI('error', 'Offline');
-      }
-    }
+        // 4. Notes: merge if dirty, otherwise accept remote
+        if (dirtySnapshot.includes('notes')) {
+          appState.notes = mergeByIdAndTimestamp(appState.notes, remote.notes, syncMeta.deletedIds.notes);
+          const rows = appState.notes.map((n, i) => [
+            n.id || `n-${i + 1}`,
+            n.title || '',
+            n.type || 'text',
+            n.type === 'checklist' ? JSON.stringify(n.items || []) : (n.content || ''),
+            n.pinned ? 'TRUE' : 'FALSE',
+            n.updatedAt || new Date().toISOString()
+          ]);
+          const targetLen = Math.max(remote.noteRawCount, rows.length) + 10;
+          writePayload.push({
+            range: "'Notes'!A2",
+            values: padRowsWithBlanks(rows, 6, targetLen)
+          });
+        } else {
+          appState.notes = remote.notes;
+          syncMeta.deletedIds.notes = {};
+        }
 
-    function schedulePushToGoogleSheets() {
-      saveLocalState();
-      const cfg = getSyncConfig();
-      if (!cfg || !cfg.sheetId) return;
-      updateSyncUI('syncing', 'Saving…');
-      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
-      syncDebounceTimer = setTimeout(() => {
-        pushAllToGoogleSheets();
-      }, 650);
-    }
-
-    async function pushAllToGoogleSheets() {
-      const cfg = getSyncConfig();
-      if (!cfg || !cfg.sheetId) return;
-      try {
-        const token = await getGoogleAccessToken(cfg);
-
-        await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchClear`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            ranges: [
-              "'Grocery List'!A2:F500",
-              "'Recipes'!A2:J200",
-              "'Meal Plan'!A2:G100",
-              "'Notes'!A2:F200"
-            ]
-          })
-        });
-
-        const groceryValues = appState.grocery.map((g, i) => [
-          g.id || `g-${i + 1}`,
-          g.section || 'Dry Goods / Pantry',
-          g.item || '',
-          g.checked ? 'TRUE' : 'FALSE',
-          String(g.sortOrder || i + 1),
-          g.updatedAt || new Date().toISOString()
-        ]);
-
-        const recipeValues = appState.recipes.map((r, i) => [
-          r.id || `r-${i + 1}`,
-          r.title || '',
-          r.active ? 'TRUE' : 'FALSE',
-          String(r.baseServings || 4),
-          String(r.currentServings || r.baseServings || 4),
-          r.prepTime || '',
-          r.cookTime || '',
-          r.notes || '',
-          JSON.stringify(r.ingredients || []),
-          JSON.stringify(r.steps || [])
-        ]);
-
-        const mealValues = appState.meals.map((m, i) => [
-          m.id || `m-${i + 1}`,
-          m.day || '',
-          m.name || '',
-          m.time || '',
-          m.difficulty || '',
-          m.notes || '',
-          m.recipeId || ''
-        ]);
-
-        const noteValues = appState.notes.map((n, i) => [
-          n.id || `n-${i + 1}`,
-          n.title || '',
-          n.type || 'text',
-          n.type === 'checklist' ? JSON.stringify(n.items || []) : (n.content || ''),
-          n.pinned ? 'TRUE' : 'FALSE',
-          n.updatedAt || new Date().toISOString()
-        ]);
-
-        const dataPayload = [];
-        if (groceryValues.length > 0) dataPayload.push({ range: "'Grocery List'!A2", values: groceryValues });
-        if (recipeValues.length > 0)  dataPayload.push({ range: "'Recipes'!A2", values: recipeValues });
-        if (mealValues.length > 0)    dataPayload.push({ range: "'Meal Plan'!A2", values: mealValues });
-        if (noteValues.length > 0)    dataPayload.push({ range: "'Notes'!A2", values: noteValues });
-
-        if (dataPayload.length > 0) {
-          const resp = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchUpdate`, {
+        // Atomic single-request write for dirty tabs (RAW mode + blank row padding, never batchClear)
+        if (writePayload.length > 0) {
+          const writeResp = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchUpdate`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              valueInputOption: 'USER_ENTERED',
-              data: dataPayload
+              valueInputOption: 'RAW',
+              data: writePayload
             })
           });
-          if (!resp.ok) throw new Error(`Sheets write HTTP ${resp.status}`);
+          if (!writeResp.ok) throw new Error(`Sheets write HTTP ${writeResp.status}`);
+
+          syncMeta.dirtyTabs = syncMeta.dirtyTabs.filter(t => !dirtySnapshot.includes(t));
+          if (dirtySnapshot.includes('grocery')) syncMeta.deletedIds.grocery = {};
+          if (dirtySnapshot.includes('recipes')) syncMeta.pinnedRecipes = {};
+          if (dirtySnapshot.includes('meals'))   syncMeta.deletedIds.meals = {};
+          if (dirtySnapshot.includes('notes'))   syncMeta.deletedIds.notes = {};
         }
 
         appState.lastSyncedAt = new Date().toISOString();
         saveLocalState();
+        renderAll();
         updateSyncUI('synced', 'Synced');
       } catch (err) {
-        console.error('Sync push error:', err);
-        updateSyncUI('error', 'Saved Locally');
+        console.error('Sync error:', err);
+        updateSyncUI('error', syncMeta.dirtyTabs.length > 0 ? 'Saved Locally' : 'Offline');
+      } finally {
+        isSyncInFlight = false;
+        if (resyncQueued) {
+          resyncQueued = false;
+          schedulePushToGoogleSheets();
+        }
       }
+    }
+
+    function pullFromGoogleSheets(options = {}) {
+      return syncWithGoogleSheets(options);
+    }
+
+    function schedulePushToGoogleSheets(tabName) {
+      if (tabName) markTabDirty(tabName);
+      saveLocalState();
+      const cfg = getSyncConfig();
+      if (!cfg || !cfg.sheetId) return;
+      updateSyncUI('syncing', 'Saving…');
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+      syncDebounceTimer = setTimeout(() => {
+        syncWithGoogleSheets();
+      }, 650);
     }
 
     /********************************************************************
@@ -2036,13 +2236,26 @@
       } catch (e) {}
       try {
         const rawPrefs = localStorage.getItem(STORAGE_KEYS.UI_PREFS);
-        if (rawPrefs) uiPrefs = Object.assign(uiPrefs, JSON.parse(rawPrefs));
+        if (rawPrefs) {
+          uiPrefs = Object.assign(uiPrefs, JSON.parse(rawPrefs));
+          if (!uiPrefs.cookingProgress) uiPrefs.cookingProgress = {};
+        }
+      } catch (e) {}
+      try {
+        const rawSyncMeta = localStorage.getItem(STORAGE_KEYS.SYNC_META);
+        if (rawSyncMeta) {
+          const parsedMeta = JSON.parse(rawSyncMeta);
+          syncMeta.dirtyTabs = Array.isArray(parsedMeta.dirtyTabs) ? parsedMeta.dirtyTabs : [];
+          syncMeta.deletedIds = Object.assign({ grocery: {}, meals: {}, notes: {} }, parsedMeta.deletedIds || {});
+          syncMeta.pinnedRecipes = parsedMeta.pinnedRecipes || {};
+        }
       } catch (e) {}
     }
 
     function saveLocalState() {
       localStorage.setItem(STORAGE_KEYS.STATE, JSON.stringify(appState));
       localStorage.setItem(STORAGE_KEYS.UI_PREFS, JSON.stringify(uiPrefs));
+      localStorage.setItem(STORAGE_KEYS.SYNC_META, JSON.stringify(syncMeta));
     }
 
     function renderAll() {
@@ -2092,7 +2305,7 @@
 
         html += `
           <div class="section-block ${isCollapsed ? 'collapsed' : ''}">
-            <div class="section-header" onclick="toggleGrocerySection('${escapeHtml(secName)}')">
+            <div class="section-header" data-action="toggle-grocery-section" data-section="${escapeHtml(secName)}">
               <div class="section-title-wrap">
                 <span>${isCollapsed ? '▸' : '▾'}</span>
                 <span>${escapeHtml(secName)}</span>
@@ -2101,7 +2314,7 @@
             </div>
             <div class="section-items">
               ${sorted.map(item => `
-                <div class="grocery-row ${item.checked ? 'checked' : ''}" onclick="toggleGroceryItem('${escapeHtml(item.id)}')">
+                <div class="grocery-row ${item.checked ? 'checked' : ''}" data-action="toggle-grocery-item" data-id="${escapeHtml(item.id)}">
                   <div class="checkbox-ui">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
                   </div>
@@ -2127,10 +2340,23 @@
       item.checked = !item.checked;
       item.updatedAt = new Date().toISOString();
       renderGroceryView();
-      schedulePushToGoogleSheets();
+      schedulePushToGoogleSheets('grocery');
     }
 
-    /* 2. RENDER COOK / RECIPE GALLERY & COUNTER VIEW */
+    /* 2. RENDER COOK / RECIPE GALLERY & COUNTER VIEW (Local Cooking Progress) */
+    function getCookingProgress(recipeId, baseServings) {
+      if (!uiPrefs.cookingProgress) uiPrefs.cookingProgress = {};
+      if (!uiPrefs.cookingProgress[recipeId]) {
+        uiPrefs.cookingProgress[recipeId] = {
+          servings: Number(baseServings) || 4,
+          checkedIngredients: {},
+          completedSteps: {},
+          activeStep: 0
+        };
+      }
+      return uiPrefs.cookingProgress[recipeId];
+    }
+
     function parseRecipeCategoryAndName(rawTitle) {
       const str = String(rawTitle || 'Untitled Recipe');
       const idx = str.indexOf(':');
@@ -2185,8 +2411,10 @@
       const r = appState.recipes.find(x => x.id === recipeId);
       if (!r) return;
       r.active = !r.active;
+      if (!syncMeta.pinnedRecipes) syncMeta.pinnedRecipes = {};
+      syncMeta.pinnedRecipes[recipeId] = r.active;
       renderCookView();
-      schedulePushToGoogleSheets();
+      schedulePushToGoogleSheets('recipes');
     }
 
     function renderCookView() {
@@ -2213,13 +2441,18 @@
     function renderRecipeGallery() {
       const pillsEl = document.getElementById('recipe-category-pills');
       const listEl = document.getElementById('recipe-gallery-list');
+      const searchInput = document.getElementById('recipe-search-input');
       const recipes = appState.recipes || [];
+
+      if (searchInput && document.activeElement !== searchInput) {
+        searchInput.value = uiPrefs.recipeSearchQuery || '';
+      }
 
       const activeFilter = uiPrefs.recipeCategoryFilter || 'all';
       pillsEl.innerHTML = GALLERY_CATEGORIES.map(c => {
         const count = recipes.filter(r => matchesGalleryFilter(r, c.id)).length;
         return `
-          <button class="recipe-pill ${activeFilter === c.id ? 'active' : ''}" onclick="setRecipeCategoryFilter('${c.id}')">
+          <button type="button" class="recipe-pill ${activeFilter === c.id ? 'active' : ''}" data-action="set-recipe-category" data-category="${escapeHtml(c.id)}">
             ${escapeHtml(c.label)} <span style="opacity:0.7; font-size:0.76rem;">(${count})</span>
           </button>
         `;
@@ -2244,11 +2477,13 @@
 
       listEl.innerHTML = filtered.map(r => {
         const { badge, cleanTitle } = parseRecipeCategoryAndName(r.title);
+        const prog = getCookingProgress(r.id, r.baseServings);
+        const dispServings = Number(prog.servings) || Number(r.baseServings) || 4;
         return `
-          <div class="gallery-card ${r.active ? 'pinned-card' : ''}" onclick="openRecipeDetail('${escapeHtml(r.id)}')">
+          <div class="gallery-card ${r.active ? 'pinned-card' : ''}" data-action="open-recipe-detail" data-recipe-id="${escapeHtml(r.id)}">
             <div class="gallery-card-top">
               <span class="category-tag">${escapeHtml(badge)}</span>
-              <button type="button" class="pin-star-btn ${r.active ? 'active' : ''}" onclick="event.stopPropagation(); togglePinRecipe('${escapeHtml(r.id)}')">
+              <button type="button" class="pin-star-btn ${r.active ? 'active' : ''}" data-action="toggle-pin-recipe" data-recipe-id="${escapeHtml(r.id)}">
                 ${r.active ? '★ Pinned Up Next' : '☆ Pin Recipe'}
               </button>
             </div>
@@ -2256,7 +2491,7 @@
             <div class="recipe-meta-chips" style="margin-bottom:${r.notes ? '8px' : '0'};">
               ${r.prepTime ? `<span class="meta-chip">🔪 ${escapeHtml(r.prepTime)}</span>` : ''}
               ${r.cookTime ? `<span class="meta-chip">🔥 ${escapeHtml(r.cookTime)}</span>` : ''}
-              <span class="meta-chip">🍽 ${Number(r.currentServings) || Number(r.baseServings) || 4} servings</span>
+              <span class="meta-chip">🍽 ${dispServings} servings</span>
             </div>
             ${r.notes ? `<div style="font-size:0.84rem; color:var(--text-secondary);">${escapeHtml(r.notes)}</div>` : ''}
           </div>
@@ -2277,20 +2512,21 @@
       const { badge, cleanTitle } = parseRecipeCategoryAndName(recipe.title);
 
       const baseS = Number(recipe.baseServings) || 4;
-      const currS = Number(recipe.currentServings) || baseS;
+      const prog = getCookingProgress(recipe.id, baseS);
+      const currS = Number(prog.servings) || baseS;
       const isScaled = currS !== baseS;
 
       const prepItems = (recipe.ingredients || []).filter(i => (i.category || '').toLowerCase().includes('prep') || (i.category || '').toLowerCase().includes('mise'));
       const ingItems = (recipe.ingredients || []).filter(i => !prepItems.includes(i));
 
-      const activeStepIdx = uiPrefs.activeStepByRecipe[recipe.id] ?? 0;
+      const activeStepIdx = prog.activeStep ?? 0;
 
       content.innerHTML = `
         <div class="cook-top-nav">
-          <button type="button" class="back-gallery-btn" onclick="openRecipeGallery()">
+          <button type="button" class="back-gallery-btn" data-action="open-recipe-gallery">
             ← All Recipes (${recipes.length})
           </button>
-          <button type="button" class="pin-star-btn ${recipe.active ? 'active' : ''}" style="height:38px; padding:0 13px; font-size:0.82rem;" onclick="togglePinRecipe('${escapeHtml(recipe.id)}')">
+          <button type="button" class="pin-star-btn ${recipe.active ? 'active' : ''}" style="height:38px; padding:0 13px; font-size:0.82rem;" data-action="toggle-pin-recipe" data-recipe-id="${escapeHtml(recipe.id)}">
             ${recipe.active ? '★ Pinned Up Next' : '☆ Pin Recipe'}
           </button>
         </div>
@@ -2311,10 +2547,10 @@
               <span class="scaler-sub">Auto-scales ingredients &amp; step amounts</span>
             </div>
             <div class="scaler-controls">
-              ${isScaled ? `<button class="step-done-btn" onclick="setRecipeServings('${escapeHtml(recipe.id)}', ${baseS})">Reset</button>` : ''}
-              <button class="step-btn" onclick="changeRecipeServings('${escapeHtml(recipe.id)}', -1)">−</button>
+              ${isScaled ? `<button type="button" class="step-done-btn" data-action="set-recipe-servings" data-recipe-id="${escapeHtml(recipe.id)}" data-servings="${baseS}">Reset</button>` : ''}
+              <button type="button" class="step-btn" data-action="change-recipe-servings" data-recipe-id="${escapeHtml(recipe.id)}" data-delta="-1">−</button>
               <span class="servings-value">${currS}</span>
-              <button class="step-btn" onclick="changeRecipeServings('${escapeHtml(recipe.id)}', 1)">+</button>
+              <button type="button" class="step-btn" data-action="change-recipe-servings" data-recipe-id="${escapeHtml(recipe.id)}" data-delta="1">+</button>
             </div>
           </div>
         </div>
@@ -2322,36 +2558,36 @@
         ${prepItems.length > 0 ? `
           <div class="cook-section-title">
             <span>1. Mise en Place (Prep First)</span>
-            <span style="font-size:0.76rem; color:var(--text-muted);">${prepItems.filter(i => i.checked).length}/${prepItems.length} done</span>
+            <span style="font-size:0.76rem; color:var(--text-muted);">${prepItems.filter(i => prog.checkedIngredients[i.id]).length}/${prepItems.length} done</span>
           </div>
           <div class="section-block">
-            ${prepItems.map(item => renderRecipeIngredientRow(recipe, item, baseS, currS)).join('')}
+            ${prepItems.map(item => renderRecipeIngredientRow(recipe, item, baseS, currS, prog)).join('')}
           </div>
         ` : ''}
 
         ${ingItems.length > 0 ? `
           <div class="cook-section-title">
             <span>${prepItems.length > 0 ? '2. Ingredients' : '1. Ingredients'}</span>
-            <button class="step-done-btn" onclick="resetRecipeChecks('${escapeHtml(recipe.id)}')">Reset Checks</button>
+            <button type="button" class="step-done-btn" data-action="reset-recipe-checks" data-recipe-id="${escapeHtml(recipe.id)}">Reset Checks</button>
           </div>
           <div class="section-block">
-            ${ingItems.map(item => renderRecipeIngredientRow(recipe, item, baseS, currS)).join('')}
+            ${ingItems.map(item => renderRecipeIngredientRow(recipe, item, baseS, currS, prog)).join('')}
           </div>
         ` : ''}
 
         <div class="cook-section-title">
           <span>${prepItems.length > 0 && ingItems.length > 0 ? '3. Cooking Steps (Tap step to focus)' : '2. Cooking Steps (Tap step to focus)'}</span>
-          ${prepItems.length > 0 && ingItems.length === 0 ? `<button class="step-done-btn" onclick="resetRecipeChecks('${escapeHtml(recipe.id)}')">Reset Checks</button>` : ''}
+          ${prepItems.length > 0 && ingItems.length === 0 ? `<button type="button" class="step-done-btn" data-action="reset-recipe-checks" data-recipe-id="${escapeHtml(recipe.id)}">Reset Checks</button>` : ''}
         </div>
         <div>
           ${(recipe.steps || []).map((step, idx) => {
             const isActive = idx === activeStepIdx;
-            const isDone = Boolean(step.completed);
+            const isDone = Boolean(prog.completedSteps[idx]);
             return `
-              <div class="step-card ${isActive ? 'active-step' : ''} ${isDone ? 'completed-step' : ''}" onclick="focusRecipeStep('${escapeHtml(recipe.id)}', ${idx})">
+              <div class="step-card ${isActive ? 'active-step' : ''} ${isDone ? 'completed-step' : ''}" data-action="focus-recipe-step" data-recipe-id="${escapeHtml(recipe.id)}" data-step-idx="${idx}">
                 <div class="step-card-header">
                   <span class="step-badge">${isActive ? '▶ Current Step ' + (idx + 1) : 'Step ' + (idx + 1)}</span>
-                  <button class="step-done-btn" onclick="event.stopPropagation(); toggleRecipeStepDone('${escapeHtml(recipe.id)}', ${idx})">
+                  <button type="button" class="step-done-btn" data-action="toggle-recipe-step-done" data-recipe-id="${escapeHtml(recipe.id)}" data-step-idx="${idx}">
                     ${isDone ? '✓ Completed' : 'Mark Done'}
                   </button>
                 </div>
@@ -2365,11 +2601,12 @@
       `;
     }
 
-    function renderRecipeIngredientRow(recipe, item, baseS, currS) {
+    function renderRecipeIngredientRow(recipe, item, baseS, currS, prog) {
       const scaledQty = scaleQuantity(item.qty, baseS, currS);
       const qtyUnit = [scaledQty, item.unit].filter(Boolean).join(' ');
+      const isChecked = Boolean(prog && prog.checkedIngredients && prog.checkedIngredients[item.id]);
       return `
-        <div class="prep-row ${item.checked ? 'checked' : ''}" onclick="toggleRecipeIngredient('${escapeHtml(recipe.id)}', '${escapeHtml(item.id)}')">
+        <div class="prep-row ${isChecked ? 'checked' : ''}" data-action="toggle-recipe-ingredient" data-recipe-id="${escapeHtml(recipe.id)}" data-ing-id="${escapeHtml(item.id)}">
           <div class="checkbox-ui">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </div>
@@ -2384,32 +2621,35 @@
     function changeRecipeServings(recipeId, delta) {
       const r = appState.recipes.find(x => x.id === recipeId);
       if (!r) return;
-      const next = Math.max(1, Math.min(36, (Number(r.currentServings) || Number(r.baseServings) || 4) + delta));
-      r.currentServings = next;
+      const prog = getCookingProgress(recipeId, r.baseServings);
+      prog.servings = Math.max(1, Math.min(36, (Number(prog.servings) || Number(r.baseServings) || 4) + delta));
+      saveLocalState();
       renderCookView();
-      schedulePushToGoogleSheets();
     }
 
     function setRecipeServings(recipeId, val) {
       const r = appState.recipes.find(x => x.id === recipeId);
       if (!r) return;
-      r.currentServings = val;
+      const prog = getCookingProgress(recipeId, r.baseServings);
+      prog.servings = Number(val) || Number(r.baseServings) || 4;
+      saveLocalState();
       renderCookView();
-      schedulePushToGoogleSheets();
     }
 
     function toggleRecipeIngredient(recipeId, ingId) {
       const r = appState.recipes.find(x => x.id === recipeId);
       if (!r) return;
-      const ing = (r.ingredients || []).find(x => x.id === ingId);
-      if (!ing) return;
-      ing.checked = !ing.checked;
+      const prog = getCookingProgress(recipeId, r.baseServings);
+      prog.checkedIngredients[ingId] = !prog.checkedIngredients[ingId];
+      saveLocalState();
       renderCookView();
-      schedulePushToGoogleSheets();
     }
 
     function focusRecipeStep(recipeId, idx) {
-      uiPrefs.activeStepByRecipe[recipeId] = idx;
+      const r = appState.recipes.find(x => x.id === recipeId);
+      if (!r) return;
+      const prog = getCookingProgress(recipeId, r.baseServings);
+      prog.activeStep = idx;
       saveLocalState();
       renderCookView();
     }
@@ -2417,22 +2657,24 @@
     function toggleRecipeStepDone(recipeId, idx) {
       const r = appState.recipes.find(x => x.id === recipeId);
       if (!r || !r.steps || !r.steps[idx]) return;
-      r.steps[idx].completed = !r.steps[idx].completed;
-      if (r.steps[idx].completed && idx + 1 < r.steps.length) {
-        uiPrefs.activeStepByRecipe[recipeId] = idx + 1;
+      const prog = getCookingProgress(recipeId, r.baseServings);
+      prog.completedSteps[idx] = !prog.completedSteps[idx];
+      if (prog.completedSteps[idx] && idx + 1 < r.steps.length) {
+        prog.activeStep = idx + 1;
       }
+      saveLocalState();
       renderCookView();
-      schedulePushToGoogleSheets();
     }
 
     function resetRecipeChecks(recipeId) {
       const r = appState.recipes.find(x => x.id === recipeId);
       if (!r) return;
-      (r.ingredients || []).forEach(i => i.checked = false);
-      (r.steps || []).forEach(s => s.completed = false);
-      uiPrefs.activeStepByRecipe[recipeId] = 0;
+      const prog = getCookingProgress(recipeId, r.baseServings);
+      prog.checkedIngredients = {};
+      prog.completedSteps = {};
+      prog.activeStep = 0;
+      saveLocalState();
       renderCookView();
-      schedulePushToGoogleSheets();
     }
 
     /* 3. RENDER MEAL PLAN VIEW */
@@ -2450,7 +2692,7 @@
           <div class="meal-card">
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
               <span class="meal-day-tag">${escapeHtml(m.day)}</span>
-              <button class="step-done-btn" onclick="deleteMeal('${escapeHtml(m.id)}')">✕</button>
+              <button type="button" class="step-done-btn" data-action="delete-meal" data-id="${escapeHtml(m.id)}">✕</button>
             </div>
             <h3 class="meal-title">${escapeHtml(m.name)}</h3>
             <div class="recipe-meta-chips" style="margin-bottom:6px;">
@@ -2459,7 +2701,7 @@
             </div>
             ${m.notes ? `<p class="meal-notes">${escapeHtml(m.notes)}</p>` : ''}
             ${hasRecipe ? `
-              <button class="btn-primary" style="width:100%; height:42px; margin-top:6px;" onclick="openRecipeFromMeal('${escapeHtml(m.recipeId)}')">
+              <button type="button" class="btn-primary" style="width:100%; height:42px; margin-top:6px;" data-action="open-recipe-from-meal" data-recipe-id="${escapeHtml(m.recipeId)}">
                 🍳 Open Kitchen Counter Recipe →
               </button>
             ` : ''}
@@ -2475,9 +2717,10 @@
     }
 
     function deleteMeal(id) {
+      recordDeletedId('meals', id);
       appState.meals = appState.meals.filter(m => m.id !== id);
       renderMealsView();
-      schedulePushToGoogleSheets();
+      schedulePushToGoogleSheets('meals');
     }
 
     /* 4. RENDER NOTES VIEW */
@@ -2493,12 +2736,12 @@
         <div class="note-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <h3 style="margin:0; font-size:1.08rem; font-weight:700;">${n.pinned ? '📌 ' : ''}${escapeHtml(n.title)}</h3>
-            <button class="step-done-btn" onclick="deleteNote('${escapeHtml(n.id)}')">Delete</button>
+            <button type="button" class="step-done-btn" data-action="delete-note" data-id="${escapeHtml(n.id)}">Delete</button>
           </div>
           ${n.type === 'checklist' ? `
             <div class="section-block" style="margin-bottom:8px;">
               ${(n.items || []).map(item => `
-                <div class="grocery-row ${item.checked ? 'checked' : ''}" onclick="toggleNoteChecklistItem('${escapeHtml(n.id)}', '${escapeHtml(item.id)}')">
+                <div class="grocery-row ${item.checked ? 'checked' : ''}" data-action="toggle-note-item" data-note-id="${escapeHtml(n.id)}" data-item-id="${escapeHtml(item.id)}">
                   <div class="checkbox-ui">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
                   </div>
@@ -2506,7 +2749,7 @@
                 </div>
               `).join('')}
             </div>
-            <form style="display:flex; gap:6px;" onsubmit="addNoteChecklistItem(event, '${escapeHtml(n.id)}')">
+            <form style="display:flex; gap:6px;" data-action="add-note-checklist-item" data-note-id="${escapeHtml(n.id)}">
               <input type="text" class="quick-input" style="height:38px; font-size:0.88rem;" placeholder="Add item to ${escapeHtml(n.title)}..." required />
               <button type="submit" class="btn-secondary" style="flex:0 0 64px; height:38px;">Add</button>
             </form>
@@ -2525,13 +2768,12 @@
       item.checked = !item.checked;
       note.updatedAt = new Date().toISOString();
       renderNotesView();
-      schedulePushToGoogleSheets();
+      schedulePushToGoogleSheets('notes');
     }
 
-    function addNoteChecklistItem(e, noteId) {
-      e.preventDefault();
-      const input = e.target.querySelector('input');
-      const val = input.value.trim();
+    function addNoteChecklistItem(formEl, noteId) {
+      const input = formEl.querySelector('input');
+      const val = input ? input.value.trim() : '';
       if (!val) return;
       const note = appState.notes.find(n => n.id === noteId);
       if (!note) return;
@@ -2540,17 +2782,18 @@
       note.updatedAt = new Date().toISOString();
       input.value = '';
       renderNotesView();
-      schedulePushToGoogleSheets();
+      schedulePushToGoogleSheets('notes');
     }
 
     function deleteNote(id) {
+      recordDeletedId('notes', id);
       appState.notes = appState.notes.filter(n => n.id !== id);
       renderNotesView();
-      schedulePushToGoogleSheets();
+      schedulePushToGoogleSheets('notes');
     }
 
     /********************************************************************
-     * NAVIGATION, MODALS & EVENT LISTENERS
+     * NAVIGATION, MODALS & DELEGATED EVENT LISTENERS
      ********************************************************************/
     const VIEW_TITLES = {
       grocery: 'Grocery List',
@@ -2585,7 +2828,8 @@
       const cfg = getSyncConfig();
       const box = document.getElementById('settings-status-box');
       if (cfg && cfg.sheetId) {
-        box.innerHTML = `✅ <strong>Connected to Private Google Sheet</strong><br/><span style="color:var(--text-muted); font-size:0.78rem;">Sheet ID: ...${escapeHtml(cfg.sheetId.slice(-8))} • Last synced: ${appState.lastSyncedAt ? new Date(appState.lastSyncedAt).toLocaleTimeString() : 'Just now'}</span>`;
+        const pendingInfo = syncMeta.dirtyTabs.length > 0 ? ` • Pending upload: ${escapeHtml(syncMeta.dirtyTabs.join(', '))}` : '';
+        box.innerHTML = `✅ <strong>Connected to Private Google Sheet</strong><br/><span style="color:var(--text-muted); font-size:0.78rem;">Sheet ID: ...${escapeHtml(cfg.sheetId.slice(-8))} • Last synced: ${appState.lastSyncedAt ? new Date(appState.lastSyncedAt).toLocaleTimeString() : 'Just now'}${pendingInfo}</span>`;
       } else {
         box.innerHTML = `⚠️ <strong>Not linked yet.</strong> Open the one-tap setup link from your PC or paste it below.`;
       }
@@ -2627,10 +2871,117 @@
       document.getElementById('meta-theme-color').setAttribute('content', theme === 'dark' ? '#0d1210' : '#ffffff');
     }
 
-    // Wire up UI events
+    // Unified Delegated Click Listener (Immune to quotes, inch marks, and apostrophes)
+    document.addEventListener('click', (e) => {
+      const actionEl = e.target.closest('[data-action]');
+      if (!actionEl) return;
+
+      const action = actionEl.dataset.action;
+      switch (action) {
+        case 'open-settings-modal':
+          openSettingsModal();
+          break;
+        case 'open-add-meal-modal':
+          openAddMealModal();
+          break;
+        case 'open-add-note-modal':
+          openAddNoteModal();
+          break;
+        case 'close-modals':
+          closeModals();
+          break;
+        case 'save-manual-connect':
+          saveManualConnect();
+          break;
+        case 'test-timer-alert':
+          testTimerChimeAndBuzz();
+          break;
+        case 'start-timer':
+          e.stopPropagation();
+          startKitchenTimer(Number(actionEl.dataset.seconds) || 60, actionEl.dataset.label || 'Kitchen Timer');
+          break;
+        case 'add-timer-minute':
+          e.stopPropagation();
+          addMinuteToTimer(actionEl.dataset.id);
+          break;
+        case 'toggle-timer-pause':
+          e.stopPropagation();
+          toggleTimerPause(actionEl.dataset.id);
+          break;
+        case 'dismiss-timer':
+          e.stopPropagation();
+          dismissTimer(actionEl.dataset.id);
+          break;
+        case 'toggle-grocery-section':
+          toggleGrocerySection(actionEl.dataset.section);
+          break;
+        case 'toggle-grocery-item':
+          toggleGroceryItem(actionEl.dataset.id);
+          break;
+        case 'set-recipe-category':
+          setRecipeCategoryFilter(actionEl.dataset.category);
+          break;
+        case 'open-recipe-gallery':
+          openRecipeGallery();
+          break;
+        case 'open-recipe-detail':
+          openRecipeDetail(actionEl.dataset.recipeId);
+          break;
+        case 'toggle-pin-recipe':
+          e.stopPropagation();
+          togglePinRecipe(actionEl.dataset.recipeId);
+          break;
+        case 'set-recipe-servings':
+          setRecipeServings(actionEl.dataset.recipeId, Number(actionEl.dataset.servings));
+          break;
+        case 'change-recipe-servings':
+          changeRecipeServings(actionEl.dataset.recipeId, Number(actionEl.dataset.delta));
+          break;
+        case 'toggle-recipe-ingredient':
+          toggleRecipeIngredient(actionEl.dataset.recipeId, actionEl.dataset.ingId);
+          break;
+        case 'reset-recipe-checks':
+          resetRecipeChecks(actionEl.dataset.recipeId);
+          break;
+        case 'focus-recipe-step':
+          focusRecipeStep(actionEl.dataset.recipeId, Number(actionEl.dataset.stepIdx));
+          break;
+        case 'toggle-recipe-step-done':
+          e.stopPropagation();
+          toggleRecipeStepDone(actionEl.dataset.recipeId, Number(actionEl.dataset.stepIdx));
+          break;
+        case 'open-recipe-from-meal':
+          openRecipeFromMeal(actionEl.dataset.recipeId);
+          break;
+        case 'delete-meal':
+          deleteMeal(actionEl.dataset.id);
+          break;
+        case 'toggle-note-item':
+          toggleNoteChecklistItem(actionEl.dataset.noteId, actionEl.dataset.itemId);
+          break;
+        case 'delete-note':
+          deleteNote(actionEl.dataset.id);
+          break;
+      }
+    });
+
+    // Delegated Form Submit Listener for Note Checklists
+    document.addEventListener('submit', (e) => {
+      const formEl = e.target.closest('form[data-action="add-note-checklist-item"]');
+      if (formEl) {
+        e.preventDefault();
+        addNoteChecklistItem(formEl, formEl.dataset.noteId);
+      }
+    });
+
+    // Recipe Search Input Listener
+    document.getElementById('recipe-search-input').addEventListener('input', (e) => {
+      onRecipeSearchInput(e.target.value);
+    });
+
+    // Wire up Bottom Nav & Top Bar UI events
     document.querySelectorAll('.nav-tab').forEach(btn => {
       btn.addEventListener('click', () => {
-        // If already on Cook tab and in detail mode, tapping Cook tab again returns to Gallery!
         if (btn.dataset.view === 'cook' && uiPrefs.activeView === 'cook' && uiPrefs.cookSubView === 'detail') {
           openRecipeGallery();
           return;
@@ -2663,7 +3014,7 @@
       });
       input.value = '';
       renderGroceryView();
-      schedulePushToGoogleSheets();
+      schedulePushToGoogleSheets('grocery');
     });
 
     document.getElementById('toggle-hide-checked-btn').addEventListener('click', () => {
@@ -2673,11 +3024,12 @@
     });
 
     document.getElementById('clear-checked-btn').addEventListener('click', () => {
-      const checkedCount = appState.grocery.filter(i => i.checked).length;
-      if (checkedCount === 0) return;
+      const checkedItems = appState.grocery.filter(i => i.checked);
+      if (checkedItems.length === 0) return;
+      checkedItems.forEach(i => recordDeletedId('grocery', i.id));
       appState.grocery = appState.grocery.filter(i => !i.checked);
       renderGroceryView();
-      schedulePushToGoogleSheets();
+      schedulePushToGoogleSheets('grocery');
     });
 
     document.getElementById('add-meal-form').addEventListener('submit', (e) => {
@@ -2689,12 +3041,13 @@
         time: document.getElementById('meal-time-input').value.trim(),
         difficulty: 'Medium',
         notes: document.getElementById('meal-notes-input').value.trim(),
-        recipeId: ''
+        recipeId: '',
+        updatedAt: new Date().toISOString()
       });
       e.target.reset();
       closeModals();
       renderMealsView();
-      schedulePushToGoogleSheets();
+      schedulePushToGoogleSheets('meals');
     });
 
     document.getElementById('add-note-form').addEventListener('submit', (e) => {
@@ -2717,7 +3070,7 @@
       e.target.reset();
       closeModals();
       renderNotesView();
-      schedulePushToGoogleSheets();
+      schedulePushToGoogleSheets('notes');
     });
 
     // Boot Application
@@ -2725,6 +3078,9 @@
       const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || 'dark';
       applyTheme(savedTheme);
       loadLocalState();
+      // Always start fresh on search query on full app boot so gallery isn't unexpectedly empty
+      uiPrefs.recipeSearchQuery = '';
+      loadTimersFromStorage();
       checkUrlHashForConnection();
       switchView(uiPrefs.activeView || 'grocery');
       renderAll();
@@ -2732,9 +3088,20 @@
 
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-          pullFromGoogleSheets();
+          pullFromGoogleSheets({ silent: true });
         }
       });
+
+      window.addEventListener('online', () => {
+        pullFromGoogleSheets({ silent: true });
+      });
+
+      // Background poll every 60 seconds while app is open (especially when Awake Lock is active)
+      setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          pullFromGoogleSheets({ silent: true });
+        }
+      }, 60000);
 
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').then(reg => {
