@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pocket-kitchen-v4';
+const CACHE_NAME = 'pocket-kitchen-v5';
 const ASSETS = [
   './',
   './index.html',

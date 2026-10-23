@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0f1412" id="meta-theme-color" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -36,6 +36,7 @@
       --shadow-lg: 0 8px 26px rgba(0, 0, 0, 0.48);
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --timer-dock-offset: 0px;
       --radius-sm: 10px;
       --radius-md: 16px;
       --radius-lg: 22px;
@@ -69,6 +70,10 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    button, .grocery-row, .prep-row, .section-header, .gallery-card, .step-card, .sync-pill, .nav-tab {
+      touch-action: manipulation;
+    }
+
     html, body {
       margin: 0;
       padding: 0;
@@ -89,7 +94,8 @@
       display: flex;
       flex-direction: column;
       padding-top: calc(var(--safe-top) + 64px);
-      padding-bottom: calc(var(--safe-bottom) + 92px);
+      padding-bottom: calc(var(--safe-bottom) + 96px + var(--timer-dock-offset));
+      transition: padding-bottom 0.18s ease;
     }
 
     /* Top Header */
@@ -119,13 +125,14 @@
     .brand-group {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       min-width: 0;
+      flex: 1;
     }
 
     .brand-title {
-      font-size: 1.08rem;
-      font-weight: 700;
+      font-size: 1.06rem;
+      font-weight: 800;
       letter-spacing: -0.02em;
       white-space: nowrap;
       overflow: hidden;
@@ -146,6 +153,7 @@
       cursor: pointer;
       user-select: none;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .sync-dot {
@@ -167,10 +175,11 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-shrink: 0;
     }
 
     .icon-btn, .wake-btn {
-      height: 38px;
+      height: 40px;
       border-radius: 999px;
       border: 1px solid var(--border-subtle);
       background: var(--bg-card);
@@ -179,17 +188,19 @@
       align-items: center;
       justify-content: center;
       gap: 5px;
-      padding: 0 11px;
-      font-size: 0.8rem;
-      font-weight: 600;
+      padding: 0 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
       cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
       transition: all 0.15s ease;
     }
 
     .icon-btn {
-      width: 38px;
+      width: 40px;
       padding: 0;
-      font-size: 1rem;
+      font-size: 1.05rem;
     }
 
     .wake-btn.active {
@@ -535,32 +546,33 @@
     }
 
     .pin-star-btn {
-      height: 30px;
-      padding: 0 10px;
+      height: 38px;
+      padding: 0 12px;
       border-radius: 999px;
       border: 1px solid var(--border-subtle);
       background: var(--bg-input);
-      color: var(--text-muted);
-      font-size: 0.76rem;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
     }
 
     .pin-star-btn.active {
-      background: var(--warn-soft);
-      color: var(--warn);
-      border-color: rgba(251, 191, 36, 0.45);
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent-border);
     }
 
     .cook-top-nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 12px;
+      flex-wrap: wrap;
     }
 
     .back-gallery-btn {
@@ -570,7 +582,7 @@
       border: 1px solid var(--border-subtle);
       background: var(--bg-card);
       color: var(--text-primary);
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
@@ -656,8 +668,8 @@
     }
 
     .step-btn {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       border-radius: 11px;
       border: 1px solid var(--border-subtle);
       background: var(--bg-card);
@@ -700,7 +712,7 @@
       display: flex;
       align-items: center;
       gap: 13px;
-      min-height: 50px;
+      min-height: 52px;
       padding: 10px 14px;
       border-bottom: 1px solid var(--border-subtle);
       cursor: pointer;
@@ -737,25 +749,26 @@
     }
 
     .step-card.completed-step {
-      opacity: 0.48;
+      opacity: 0.5;
     }
 
     .step-card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      gap: 8px;
     }
 
     .step-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      padding: 4px 10px;
+      padding: 5px 11px;
       border-radius: 999px;
       background: var(--bg-input);
       color: var(--text-secondary);
@@ -767,15 +780,20 @@
     }
 
     .step-done-btn {
-      height: 32px;
-      padding: 0 11px;
+      height: 40px;
+      padding: 0 14px;
       border-radius: 999px;
       border: 1px solid var(--border-subtle);
       background: var(--bg-input);
       color: var(--text-secondary);
-      font-size: 0.78rem;
+      font-size: 0.82rem;
       font-weight: 700;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      white-space: nowrap;
     }
 
     .step-card.completed-step .step-done-btn {
@@ -786,7 +804,7 @@
 
     .step-body {
       font-size: 1.12rem;
-      line-height: 1.55;
+      line-height: 1.58;
       color: var(--text-primary);
     }
 
@@ -809,30 +827,93 @@
       color: var(--warn);
       border: 1px solid rgba(251, 191, 36, 0.45);
       font-weight: 700;
-      font-size: 0.92rem;
-      padding: 3px 10px;
+      font-size: 0.94rem;
+      min-height: 36px;
+      padding: 5px 12px;
       border-radius: 999px;
-      margin: 2px 2px;
+      margin: 3px 2px;
       cursor: pointer;
-      vertical-align: baseline;
+      vertical-align: middle;
     }
 
     .timer-chip:active {
       transform: scale(0.96);
     }
 
-    /* Floating Kitchen Timer Dock — Always 100% Opaque */
+    .step-timer-footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border-subtle);
+    }
+
+    .step-timer-big-btn {
+      height: 44px;
+      padding: 0 15px;
+      border-radius: 12px;
+      background: var(--warn-soft);
+      color: var(--warn);
+      border: 1.5px solid rgba(251, 191, 36, 0.45);
+      font-weight: 800;
+      font-size: 0.92rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+
+    /* Counter Focus Mode (Single-Step Large View) */
+    .focus-mode-card {
+      background: var(--bg-card);
+      border: 2.5px solid var(--accent);
+      border-radius: var(--radius-lg);
+      padding: 20px 18px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .focus-step-body {
+      font-size: 1.32rem;
+      line-height: 1.62;
+      color: var(--text-primary);
+      margin: 14px 0 18px;
+    }
+
+    .focus-nav-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .focus-nav-btn {
+      flex: 1;
+      height: 48px;
+      border-radius: var(--radius-md);
+      font-size: 0.96rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* Floating Kitchen Timer Dock — Sleek while running, flashing border when done */
     .timer-dock {
       position: fixed;
       left: 12px;
       right: 12px;
-      bottom: calc(var(--safe-bottom) + 76px);
+      bottom: calc(var(--safe-bottom) + 74px);
       max-width: 516px;
       margin: 0 auto;
       z-index: 45;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 7px;
       pointer-events: none;
     }
 
@@ -840,21 +921,21 @@
       pointer-events: auto;
       background: #15211c;
       color: #f1f5f3;
-      border: 3px solid var(--warn);
-      border-radius: var(--radius-md);
-      padding: 12px 15px;
+      border: 1.5px solid rgba(251, 191, 36, 0.55);
+      border-radius: 14px;
+      padding: 8px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.72);
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
       opacity: 1 !important;
     }
 
     [data-theme="light"] .timer-bar {
       background: #ffffff;
       color: #111c16;
-      box-shadow: 0 12px 32px rgba(15, 28, 21, 0.24);
+      box-shadow: 0 8px 24px rgba(15, 28, 21, 0.22);
     }
 
     @keyframes timerBorderFlash {
@@ -870,6 +951,7 @@
 
     .timer-bar.finished {
       background: #10261d;
+      padding: 11px 14px;
       border-width: 3.5px;
       border-color: var(--accent);
       opacity: 1 !important;
@@ -882,14 +964,61 @@
     }
 
     .timer-countdown {
-      font-size: 1.32rem;
+      font-size: 1.16rem;
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       color: var(--warn);
+      flex-shrink: 0;
     }
 
     .timer-bar.finished .timer-countdown {
       color: var(--accent);
+    }
+
+    /* Undo Snackbar Toast */
+    .undo-toast {
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: calc(var(--safe-bottom) + 78px + var(--timer-dock-offset));
+      max-width: 480px;
+      margin: 0 auto;
+      background: #1a2822;
+      color: #f1f5f3;
+      border: 1.5px solid var(--accent-border);
+      border-radius: 14px;
+      padding: 10px 14px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      z-index: 55;
+      box-shadow: var(--shadow-lg);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    [data-theme="light"] .undo-toast {
+      background: #111c16;
+      color: #f4f7f5;
+    }
+
+    .undo-toast.open {
+      display: flex;
+      animation: fadeIn 0.16s ease;
+    }
+
+    .undo-btn {
+      height: 36px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #062117;
+      font-weight: 800;
+      font-size: 0.84rem;
+      cursor: pointer;
+      flex-shrink: 0;
     }
 
     /* Meal Plan Cards */
@@ -900,6 +1029,27 @@
       padding: 16px;
       margin-bottom: 12px;
       box-shadow: var(--shadow-sm);
+    }
+
+    .meal-card.clickable-meal {
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease;
+    }
+
+    .meal-card.clickable-meal:active {
+      background: var(--bg-card-hover);
+    }
+
+    .meal-recipe-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+      color: var(--accent);
+      font-size: 0.88rem;
+      font-weight: 700;
     }
 
     .meal-day-tag {
@@ -924,7 +1074,7 @@
     .meal-notes {
       font-size: 0.92rem;
       color: var(--text-secondary);
-      margin: 8px 0 12px;
+      margin: 8px 0 4px;
     }
 
     /* Bottom Navigation */
@@ -966,10 +1116,19 @@
     }
 
     .nav-tab .nav-icon {
-      font-size: 1.25rem;
-      padding: 3px 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 30px;
+      padding: 0 16px;
       border-radius: 999px;
-      transition: background 0.15s ease;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-tab .nav-icon svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2.1;
     }
 
     .nav-tab.active {
@@ -1053,7 +1212,7 @@
   <header class="top-bar">
     <div class="top-bar-inner">
       <div class="brand-group">
-        <span class="brand-title" id="header-title">Grocery List</span>
+        <span class="brand-title" id="header-title">Groceries</span>
         <div class="sync-pill" id="sync-pill" title="Tap to sync with Google Sheets">
           <span class="sync-dot"></span>
           <span id="sync-text">Local</span>
@@ -1064,13 +1223,12 @@
           <span id="wake-icon">☀</span>
           <span id="wake-label">Awake</span>
         </button>
-        <button class="icon-btn" id="theme-btn" title="Toggle Dark/Light Theme">◐</button>
-        <button class="icon-btn" id="settings-btn" title="Sync &amp; Connection Settings">⚙</button>
+        <button class="icon-btn" id="settings-btn" title="Settings, Theme &amp; Sync">⚙</button>
       </div>
     </div>
   </header>
 
-  <main class="app-shell">
+  <main class="app-shell" id="app-shell">
     <!-- 1. GROCERY LIST VIEW -->
     <section class="view-container active" id="view-grocery">
       <div id="unconnected-notice" class="connect-banner" style="display:none;">
@@ -1078,13 +1236,17 @@
           <strong>Offline / Local Mode</strong><br/>
           <span>Open your one-tap connection link from PC to enable live Google Sheets sync.</span>
         </div>
-        <button class="btn-secondary" style="flex:0 0 auto; height:36px; padding:0 12px;" data-action="open-settings-modal">Link</button>
+        <button class="btn-secondary" style="flex:0 0 auto; height:38px; padding:0 12px;" data-action="open-settings-modal">Link</button>
       </div>
 
       <div class="progress-card">
         <div class="progress-header">
-          <span id="grocery-progress-text">0 of 0 items checked</span>
-          <span id="grocery-remaining-text">0 left</span>
+          <div>
+            <span id="grocery-progress-text">0 of 0 checked</span>
+            <span style="margin:0 5px; opacity:0.4;">•</span>
+            <span id="grocery-remaining-text" style="color:var(--accent);">0 left</span>
+          </div>
+          <button type="button" class="step-done-btn" style="height:32px; padding:0 11px; font-size:0.76rem;" id="toggle-hide-checked-btn">Hide Checked</button>
         </div>
         <div class="progress-track">
           <div class="progress-fill" id="grocery-progress-fill"></div>
@@ -1092,8 +1254,8 @@
       </div>
 
       <form class="quick-add-bar" id="grocery-add-form">
-        <input type="text" class="quick-input" id="grocery-input" placeholder="Add quantity &amp; item (e.g., 2 avocados)..." required />
-        <select class="quick-select" id="grocery-section-select">
+        <input type="text" class="quick-input" id="grocery-input" placeholder="Add item (e.g., 2 avocados)…" required />
+        <select class="quick-select" id="grocery-section-select" title="Store section (auto-detected as you type)">
           <option value="Produce">Produce</option>
           <option value="Dairy & Eggs">Dairy &amp; Eggs</option>
           <option value="Frozen & Refrigerated">Frozen/Refrig</option>
@@ -1107,8 +1269,7 @@
       <div id="grocery-sections-container"></div>
 
       <div class="list-footer-bar">
-        <button class="btn-secondary" id="toggle-hide-checked-btn">Hide Checked</button>
-        <button class="btn-secondary danger" id="clear-checked-btn">Clear Checked</button>
+        <button class="btn-secondary danger" id="clear-checked-btn">Clear Checked Items</button>
       </div>
     </section>
 
@@ -1130,7 +1291,7 @@
     <section class="view-container" id="view-meals">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <span style="font-size:0.9rem; color:var(--text-secondary); font-weight:600;">Upcoming Planned Meals</span>
-        <button class="btn-primary" style="height:38px; font-size:0.85rem;" data-action="open-add-meal-modal">+ Add Meal</button>
+        <button class="btn-primary" style="height:40px; font-size:0.86rem;" data-action="open-add-meal-modal">+ Add Meal</button>
       </div>
       <div id="meals-container"></div>
     </section>
@@ -1139,32 +1300,63 @@
     <section class="view-container" id="view-notes">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <span style="font-size:0.9rem; color:var(--text-secondary); font-weight:600;">Notes &amp; Secondary Lists</span>
-        <button class="btn-primary" style="height:38px; font-size:0.85rem;" data-action="open-add-note-modal">+ New Note</button>
+        <button class="btn-primary" style="height:40px; font-size:0.86rem;" data-action="open-add-note-modal">+ New Note</button>
       </div>
       <div id="notes-container"></div>
     </section>
   </main>
 
+  <!-- Undo Snackbar Toast -->
+  <div class="undo-toast" id="undo-toast">
+    <span id="undo-toast-text">Deleted</span>
+    <button type="button" class="undo-btn" data-action="undo-last-delete">Undo</button>
+  </div>
+
   <!-- Floating Kitchen Timer Dock -->
   <div class="timer-dock" id="timer-dock"></div>
 
-  <!-- Bottom Navigation -->
+  <!-- Bottom Navigation (Crisp Custom Stroke SVGs) -->
   <nav class="bottom-nav">
     <div class="bottom-nav-inner">
       <button class="nav-tab active" data-view="grocery">
-        <span class="nav-icon">🛒</span>
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9" cy="20" r="1.5"></circle>
+            <circle cx="17" cy="20" r="1.5"></circle>
+            <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 1.9-1.4L22 7H6"></path>
+          </svg>
+        </span>
         <span>Grocery</span>
       </button>
       <button class="nav-tab" data-view="cook">
-        <span class="nav-icon">🍳</span>
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"></path>
+            <line x1="6" y1="17" x2="18" y2="17"></line>
+          </svg>
+        </span>
         <span>Cook</span>
       </button>
       <button class="nav-tab" data-view="meals">
-        <span class="nav-icon">📅</span>
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="17" rx="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </span>
         <span>Meals</span>
       </button>
       <button class="nav-tab" data-view="notes">
-        <span class="nav-icon">📝</span>
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="8" y1="13" x2="16" y2="13"></line>
+            <line x1="8" y1="17" x2="13" y2="17"></line>
+          </svg>
+        </span>
         <span>Notes</span>
       </button>
     </div>
@@ -1173,17 +1365,21 @@
   <!-- Settings / Connection Modal -->
   <div class="modal-backdrop" id="settings-modal">
     <div class="modal-card">
-      <h3 class="modal-title">Google Sheets Sync &amp; Timer Alerts</h3>
+      <h3 class="modal-title">Settings, Theme &amp; Sync</h3>
       <p style="font-size:0.86rem; color:var(--text-secondary); margin-top:0;">
         Your personal data lives privately in your Google Sheet and is cached in your phone's local storage for instant offline access.
       </p>
+      <div class="form-group">
+        <label class="form-label">Appearance</label>
+        <button type="button" class="btn-secondary" style="width:100%; height:42px;" id="theme-btn">◐ Switch Dark / Light Theme</button>
+      </div>
       <div class="form-group">
         <label class="form-label">Connection Status</label>
         <div id="settings-status-box" style="padding:10px 12px; border-radius:10px; background:var(--bg-input); font-size:0.85rem;"></div>
       </div>
       <div class="form-group">
         <label class="form-label">Kitchen Timer Sound &amp; Haptic Test</label>
-        <button type="button" class="btn-secondary" style="width:100%; height:40px;" data-action="test-timer-alert">🔔 Test Gentle Chime &amp; Vibration</button>
+        <button type="button" class="btn-secondary" style="width:100%; height:42px;" data-action="test-timer-alert">🔔 Test Gentle Chime &amp; Vibration</button>
       </div>
       <div class="form-group">
         <label class="form-label">Paste Connection Code (if linking manually)</label>
@@ -1206,12 +1402,28 @@
           <input type="text" class="quick-input" style="width:100%;" id="meal-day-input" placeholder="e.g., Tonight, Thursday, Weekend" required />
         </div>
         <div class="form-group">
+          <label class="form-label">Link to Recipe Gallery (Optional)</label>
+          <select class="quick-select" style="width:100%;" id="meal-recipe-select">
+            <option value="">— Custom / Unlinked Meal —</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label class="form-label">Meal Name</label>
           <input type="text" class="quick-input" style="width:100%;" id="meal-name-input" placeholder="e.g., Paneer Makhani with Garlic Naan" required />
         </div>
-        <div class="form-group">
-          <label class="form-label">Realistic Time Estimate</label>
-          <input type="text" class="quick-input" style="width:100%;" id="meal-time-input" placeholder="e.g., 55m total (25m prep • 30m cook)" />
+        <div style="display:flex; gap:8px;">
+          <div class="form-group" style="flex:2;">
+            <label class="form-label">Realistic Time Estimate</label>
+            <input type="text" class="quick-input" style="width:100%;" id="meal-time-input" placeholder="e.g., 55m total" />
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Difficulty</label>
+            <select class="quick-select" style="width:100%;" id="meal-difficulty-select">
+              <option value="Easy">Easy</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Hard">Hard</option>
+            </select>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Notes / Adaptations</label>
@@ -1225,16 +1437,17 @@
     </div>
   </div>
 
-  <!-- Add Note Modal -->
+  <!-- Add / Edit Note Modal -->
   <div class="modal-backdrop" id="add-note-modal">
     <div class="modal-card">
-      <h3 class="modal-title">New Note or Checklist</h3>
+      <h3 class="modal-title" id="note-modal-title">New Note or Checklist</h3>
       <form id="add-note-form">
+        <input type="hidden" id="note-edit-id-input" value="" />
         <div class="form-group">
           <label class="form-label">Title</label>
           <input type="text" class="quick-input" style="width:100%;" id="note-title-input" placeholder="e.g., Kitchen Prep / Spice Restock" required />
         </div>
-        <div class="form-group">
+        <div class="form-group" id="note-type-group">
           <label class="form-label">Type</label>
           <select class="quick-select" style="width:100%;" id="note-type-input">
             <option value="checklist">Interactive Checklist (one item per line)</option>
@@ -1442,6 +1655,36 @@
       return `Step ${stepIndex + 1} (${matchStr})`;
     }
 
+    function extractStepTimers(stepObjOrText, stepIndex) {
+      const isObj = stepObjOrText && typeof stepObjOrText === 'object';
+      const rawText = isObj ? (stepObjOrText.text || '') : String(stepObjOrText || '');
+      const stepTimerLabel = isObj ? (stepObjOrText.timerLabel || '') : '';
+      if (!rawText) return [];
+
+      const timers = [];
+      let remaining = rawText;
+
+      remaining = remaining.replace(/\[\[([^\]]+)\]\]/g, (_, inner) => {
+        const parts = inner.split('|').map(s => s.trim());
+        const durationText = parts[0] || '5 minutes';
+        const customAction = parts[1] || stepTimerLabel || `Step ${stepIndex + 1}`;
+        const seconds = parseDurationToSeconds(durationText);
+        const fullLabel = customAction.includes('(') ? customAction : `${customAction} (${durationText})`;
+        timers.push({ seconds, durationText, fullLabel });
+        return '';
+      });
+
+      const durationRegex = /(?:^|(?<=\s))((?:\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?(?:\s*[¼½¾⅓⅔⅛⅜⅝⅞])?|[¼½¾⅓⅔⅛⅜⅝⅞])(?:\s*(?:[-–]|to)\s*(?:\d+\s+\d+\/\d+|\d+\/\d+|\d+(?:\.\d+)?(?:\s*[¼½¾⅓⅔⅛⅜⅝⅞])?|[¼½¾⅓⅔⅛⅜⅝⅞]))?)\s*(hours|hour|hrs|hr|minutes|minute|mins|min|seconds|second|secs|sec)\b/gi;
+      remaining.replace(durationRegex, (match) => {
+        const seconds = parseDurationToSeconds(match);
+        const fullLabel = inferTimerActionLabel(rawText, match, stepIndex, stepTimerLabel);
+        timers.push({ seconds, durationText: match, fullLabel });
+        return match;
+      });
+
+      return timers;
+    }
+
     function renderStepTextWithScalingAndTimers(stepObjOrText, baseServings, currentServings, stepIndex) {
       const isObj = stepObjOrText && typeof stepObjOrText === 'object';
       const rawText = isObj ? (stepObjOrText.text || '') : String(stepObjOrText || '');
@@ -1479,7 +1722,7 @@
         const customAction = parts[1] || escapeHtml(stepTimerLabel) || `Step ${stepIndex + 1}`;
         const seconds = parseDurationToSeconds(durationText);
         const fullLabel = customAction.includes('(') ? customAction : `${customAction} (${durationText})`;
-        const chipHtml = `<button type="button" class="timer-chip" data-action="start-timer" data-seconds="${seconds}" data-label="${ fullLabel }">⏱ ${durationText}</button>`;
+        const chipHtml = `<button type="button" class="timer-chip" data-action="start-timer" data-seconds="${seconds}" data-label="${fullLabel}">⏱ ${durationText}</button>`;
         const token = `__TIMER_CHIP_${explicitTimerPlaceholders.length}__`;
         explicitTimerPlaceholders.push(chipHtml);
         return token;
@@ -1540,13 +1783,16 @@
 
     function updateWakeButtonUI() {
       const btn = document.getElementById('wake-btn');
+      const icon = document.getElementById('wake-icon');
       const label = document.getElementById('wake-label');
       const isLocked = Boolean(wakeLockSentinel && !wakeLockSentinel.released);
       if (wakeLockDesired || isLocked) {
         btn.classList.add('active');
-        label.textContent = 'Awake On';
+        icon.textContent = '🔆';
+        label.textContent = 'Awake';
       } else {
         btn.classList.remove('active');
+        icon.textContent = '☀';
         label.textContent = 'Awake';
       }
     }
@@ -1812,21 +2058,34 @@
       const dock = document.getElementById('timer-dock');
       if (activeTimers.length === 0) {
         dock.innerHTML = '';
+        document.documentElement.style.setProperty('--timer-dock-offset', '0px');
         return;
       }
-      dock.innerHTML = activeTimers.map(t => `
+
+      // Sort finished first, then soonest-remaining first
+      const sortedTimers = [...activeTimers].sort((a, b) => {
+        if (a.finished !== b.finished) return a.finished ? -1 : 1;
+        return (a.remainingSeconds || 0) - (b.remainingSeconds || 0);
+      });
+
+      dock.innerHTML = sortedTimers.map(t => `
         <div class="timer-bar ${t.finished ? 'finished' : ''}" ${t.finished ? `data-action="dismiss-timer" data-id="${escapeHtml(t.id)}"` : ''}>
-          <div style="min-width:0; flex:1;">
-            <div style="font-size:0.84rem; color:var(--text-primary); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(t.label)}</div>
-            <div class="timer-countdown">${t.finished ? '🔔 Time’s Up! (Tap OK)' : formatClock(t.remainingSeconds)}</div>
+          <div style="display:flex; align-items:center; gap:9px; min-width:0; flex:1;">
+            <span class="timer-countdown">${t.finished ? '🔔 Done!' : formatClock(t.remainingSeconds)}</span>
+            <span style="font-size:0.84rem; color:var(--text-primary); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(t.label)}</span>
           </div>
-          <div style="display:flex; gap:6px; flex-shrink:0;">
-            <button type="button" class="step-done-btn" data-action="add-timer-minute" data-id="${escapeHtml(t.id)}">+1m</button>
-            <button type="button" class="step-done-btn" data-action="toggle-timer-pause" data-id="${escapeHtml(t.id)}">${t.finished ? 'OK' : (t.running ? 'Pause' : 'Resume')}</button>
-            <button type="button" class="step-done-btn" data-action="dismiss-timer" data-id="${escapeHtml(t.id)}">✕</button>
+          <div style="display:flex; gap:5px; flex-shrink:0;">
+            <button type="button" class="step-done-btn" style="height:36px; padding:0 10px;" data-action="add-timer-minute" data-id="${escapeHtml(t.id)}">+1m</button>
+            <button type="button" class="step-done-btn" style="height:36px; padding:0 11px;" data-action="toggle-timer-pause" data-id="${escapeHtml(t.id)}">${t.finished ? 'OK' : (t.running ? 'Pause' : 'Resume')}</button>
+            <button type="button" class="step-done-btn" style="height:36px; padding:0 10px;" data-action="dismiss-timer" data-id="${escapeHtml(t.id)}">✕</button>
           </div>
         </div>
       `).join('');
+
+      requestAnimationFrame(() => {
+        const h = dock.offsetHeight || 0;
+        document.documentElement.style.setProperty('--timer-dock-offset', h > 0 ? `${h + 14}px` : '0px');
+      });
     }
 
     /********************************************************************
@@ -2265,7 +2524,50 @@
       renderNotesView();
     }
 
-    /* 1. RENDER GROCERY VIEW */
+    /* 1. RENDER GROCERY VIEW + SMART AISLE AUTO-DETECTION */
+    let manualSectionSelected = false;
+
+    const AISLE_KEYWORDS = [
+      {
+        section: 'Produce',
+        words: ['avocado', 'onion', 'garlic', 'ginger', 'potato', 'sweet potato', 'tomato', 'cilantro', 'parsley', 'basil', 'mint', 'lemon', 'lime', 'apple', 'banana', 'berry', 'berries', 'spinach', 'kale', 'lettuce', 'salad', 'pepper', 'bell pepper', 'jalapeno', 'serrano', 'poblano', 'carrot', 'celery', 'cucumber', 'zucchini', 'squash', 'mushroom', 'broccoli', 'cauliflower', 'cabbage', 'scallion', 'green onion', 'shallot', 'fruit', 'produce', 'grape', 'orange', 'peach', 'pear', 'mango', 'pineapple', 'asparagus', 'corn', 'beet', 'radish', 'herbs', 'chives', 'dill', 'rosemary', 'thyme']
+      },
+      {
+        section: 'Dairy & Eggs',
+        words: ['milk', 'oat milk', 'almond milk', 'soy milk', 'cream', 'heavy cream', 'half and half', 'half & half', 'butter', 'cheese', 'cheddar', 'mozzarella', 'parmesan', 'feta', 'goat cheese', 'ricotta', 'cream cheese', 'paneer', 'yogurt', 'greek yogurt', 'sour cream', 'egg', 'eggs', 'creamer', 'whipping cream']
+      },
+      {
+        section: 'Frozen & Refrigerated',
+        words: ['frozen', 'ice cream', 'tofu', 'tempeh', 'seitan', 'chick’n', 'chickn', 'beyond', 'impossible', 'crumbles', 'ravioli', 'tortellini', 'dumpling', 'waffle', 'fries', 'tots', 'peas', 'popsicle', 'sorbet', 'hummus', 'guacamole', 'salsa', 'kimchi', 'kraut', 'refrigerated']
+      },
+      {
+        section: 'Bakery & Bread',
+        words: ['bread', 'loaf', 'sourdough', 'bagel', 'bun', 'buns', 'roll', 'rolls', 'tortilla', 'tortillas', 'pita', 'naan', 'baguette', 'croissant', 'muffin', 'english muffin', 'bakery', 'ciabatta', 'flatbread']
+      },
+      {
+        section: 'Household / Other',
+        words: ['paper towel', 'toilet paper', 'tissue', 'soap', 'dish soap', 'detergent', 'laundry', 'sponge', 'trash bag', 'garbage bag', 'foil', 'aluminum foil', 'plastic wrap', 'parchment', 'ziploc', 'baggie', 'toothpaste', 'shampoo', 'conditioner', 'deodorant', 'lotion', 'cleaner', 'bleach', 'wipe', 'wipes', 'battery', 'batteries', 'light bulb', 'napkin', 'cat', 'dog', 'pet', 'pharmacy', 'vitamin', 'ibuprofen', 'tylenol']
+      },
+      {
+        section: 'Dry Goods / Pantry',
+        words: ['rice', 'pasta', 'spaghetti', 'noodle', 'quinoa', 'lentil', 'beans', 'black beans', 'kidney beans', 'pinto beans', 'cannellini', 'broth', 'stock', 'canned', 'diced tomatoes', 'crushed tomatoes', 'tomato paste', 'tomato sauce', 'coconut milk', 'oil', 'olive oil', 'vegetable oil', 'sesame oil', 'vinegar', 'soy sauce', 'tamari', 'maple syrup', 'honey', 'sugar', 'brown sugar', 'flour', 'baking', 'vanilla', 'chocolate', 'cocoa', 'chips', 'crackers', 'pretzel', 'popcorn', 'nuts', 'cashew', 'almond', 'walnut', 'pecan', 'peanut', 'peanut butter', 'almond butter', 'jam', 'jelly', 'cereal', 'oats', 'oatmeal', 'granola', 'raisin', 'dried', 'spice', 'cumin', 'paprika', 'coriander', 'turmeric', 'cinnamon', 'nutmeg', 'chili powder', 'cayenne', 'oregano', 'salt', 'pepper', 'coffee', 'tea', 'enchilada sauce', 'salsa']
+      }
+    ];
+
+    function inferGrocerySection(rawText) {
+      const lower = String(rawText || '').toLowerCase();
+      if (!lower.trim()) return null;
+      // Check frozen first if word "frozen" is explicitly present
+      if (lower.includes('frozen')) return 'Frozen & Refrigerated';
+      for (const group of AISLE_KEYWORDS) {
+        for (const w of group.words) {
+          const regex = new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
+          if (regex.test(lower)) return group.section;
+        }
+      }
+      return null;
+    }
+
     function renderGroceryView() {
       const items = appState.grocery || [];
       const total = items.length;
@@ -2279,6 +2581,12 @@
 
       const hideBtn = document.getElementById('toggle-hide-checked-btn');
       hideBtn.textContent = uiPrefs.hideCheckedGrocery ? 'Show Checked' : 'Hide Checked';
+
+      const clearBtn = document.getElementById('clear-checked-btn');
+      if (clearBtn) {
+        clearBtn.style.display = checkedCount > 0 ? 'inline-flex' : 'none';
+        clearBtn.textContent = `Clear Checked (${checkedCount})`;
+      }
 
       const container = document.getElementById('grocery-sections-container');
       const visibleItems = uiPrefs.hideCheckedGrocery ? items.filter(i => !i.checked) : items;
@@ -2343,7 +2651,7 @@
       schedulePushToGoogleSheets('grocery');
     }
 
-    /* 2. RENDER COOK / RECIPE GALLERY & COUNTER VIEW (Local Cooking Progress) */
+    /* 2. RENDER COOK / RECIPE GALLERY & COUNTER VIEW (Local Cooking Progress + Focus Mode) */
     function getCookingProgress(recipeId, baseServings) {
       if (!uiPrefs.cookingProgress) uiPrefs.cookingProgress = {};
       if (!uiPrefs.cookingProgress[recipeId]) {
@@ -2407,6 +2715,17 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function toggleCookFocusMode() {
+      uiPrefs.cookFocusMode = !uiPrefs.cookFocusMode;
+      saveLocalState();
+      renderCookView();
+    }
+
+    function toggleFocusIngredientsDrawer() {
+      uiPrefs.focusIngredientsOpen = !uiPrefs.focusIngredientsOpen;
+      renderCookView();
+    }
+
     function togglePinRecipe(recipeId) {
       const r = appState.recipes.find(x => x.id === recipeId);
       if (!r) return;
@@ -2424,7 +2743,7 @@
 
       if (uiPrefs.activeView === 'cook') {
         document.getElementById('header-title').textContent =
-          uiPrefs.cookSubView === 'detail' ? 'Kitchen Counter Recipe' : `Recipe Gallery (${recipes.length})`;
+          uiPrefs.cookSubView === 'detail' ? 'Cooking' : `Recipes (${recipes.length})`;
       }
 
       if (uiPrefs.cookSubView === 'detail' && recipes.length > 0) {
@@ -2484,7 +2803,7 @@
             <div class="gallery-card-top">
               <span class="category-tag">${escapeHtml(badge)}</span>
               <button type="button" class="pin-star-btn ${r.active ? 'active' : ''}" data-action="toggle-pin-recipe" data-recipe-id="${escapeHtml(r.id)}">
-                ${r.active ? '★ Pinned Up Next' : '☆ Pin Recipe'}
+                ${r.active ? '★ Pinned' : '☆ Pin'}
               </button>
             </div>
             <h3 style="margin:0 0 8px 0; font-size:1.14rem; font-weight:800; line-height:1.3;">${escapeHtml(cleanTitle)}</h3>
@@ -2497,6 +2816,20 @@
           </div>
         `;
       }).join('');
+    }
+
+    function renderStepTimerFooterButtons(step, stepIdx) {
+      const timers = extractStepTimers(step, stepIdx);
+      if (timers.length === 0) return '';
+      return `
+        <div class="step-timer-footer">
+          ${timers.map(t => `
+            <button type="button" class="step-timer-big-btn" data-action="start-timer" data-seconds="${t.seconds}" data-label="${escapeHtml(t.fullLabel)}">
+              ⏱ Start Timer: ${escapeHtml(t.fullLabel)}
+            </button>
+          `).join('')}
+        </div>
+      `;
     }
 
     function renderRecipeDetail() {
@@ -2518,18 +2851,92 @@
 
       const prepItems = (recipe.ingredients || []).filter(i => (i.category || '').toLowerCase().includes('prep') || (i.category || '').toLowerCase().includes('mise'));
       const ingItems = (recipe.ingredients || []).filter(i => !prepItems.includes(i));
+      const steps = recipe.steps || [];
 
-      const activeStepIdx = prog.activeStep ?? 0;
+      const activeStepIdx = Math.min(Math.max(0, prog.activeStep ?? 0), Math.max(0, steps.length - 1));
+      const isFocus = Boolean(uiPrefs.cookFocusMode);
 
-      content.innerHTML = `
+      const topBarHtml = `
         <div class="cook-top-nav">
           <button type="button" class="back-gallery-btn" data-action="open-recipe-gallery">
-            ← All Recipes (${recipes.length})
+            ← Recipes (${recipes.length})
           </button>
-          <button type="button" class="pin-star-btn ${recipe.active ? 'active' : ''}" style="height:38px; padding:0 13px; font-size:0.82rem;" data-action="toggle-pin-recipe" data-recipe-id="${escapeHtml(recipe.id)}">
-            ${recipe.active ? '★ Pinned Up Next' : '☆ Pin Recipe'}
-          </button>
+          <div style="display:flex; gap:6px;">
+            <button type="button" class="pin-star-btn ${isFocus ? 'active' : ''}" data-action="toggle-cook-focus-mode">
+              ${isFocus ? '📋 Full View' : '🔍 Focus Step'}
+            </button>
+            <button type="button" class="pin-star-btn ${recipe.active ? 'active' : ''}" data-action="toggle-pin-recipe" data-recipe-id="${escapeHtml(recipe.id)}">
+              ${recipe.active ? '★ Pinned' : '☆ Pin'}
+            </button>
+          </div>
         </div>
+      `;
+
+      // FOCUSED SINGLE-STEP COUNTER MODE
+      if (isFocus && steps.length > 0) {
+        const currentStepObj = steps[activeStepIdx];
+        const isDone = Boolean(prog.completedSteps[activeStepIdx]);
+        const allIngCount = (recipe.ingredients || []).length;
+        const checkedIngCount = (recipe.ingredients || []).filter(i => prog.checkedIngredients[i.id]).length;
+
+        content.innerHTML = `
+          ${topBarHtml}
+          <div style="margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <h2 style="margin:0; font-size:1.15rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(cleanTitle)}</h2>
+            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+              <button type="button" class="step-btn" style="width:36px; height:36px;" data-action="change-recipe-servings" data-recipe-id="${escapeHtml(recipe.id)}" data-delta="-1">−</button>
+              <span style="font-size:0.86rem; font-weight:800; color:var(--accent);">${currS} srv</span>
+              <button type="button" class="step-btn" style="width:36px; height:36px;" data-action="change-recipe-servings" data-recipe-id="${escapeHtml(recipe.id)}" data-delta="1">+</button>
+            </div>
+          </div>
+
+          <div class="focus-mode-card">
+            <div class="step-card-header">
+              <span class="step-badge" style="background:var(--accent); color:#062117; font-size:0.88rem; padding:6px 13px;">
+                Step ${activeStepIdx + 1} of ${steps.length}
+              </span>
+              <span style="font-size:0.84rem; font-weight:700; color:${isDone ? 'var(--accent)' : 'var(--text-muted)'};">
+                ${isDone ? '✓ Completed' : 'In Progress'}
+              </span>
+            </div>
+
+            <div class="focus-step-body">
+              ${renderStepTextWithScalingAndTimers(currentStepObj, baseS, currS, activeStepIdx)}
+            </div>
+
+            ${renderStepTimerFooterButtons(currentStepObj, activeStepIdx)}
+
+            <div class="focus-nav-bar">
+              <button type="button" class="btn-secondary focus-nav-btn" ${activeStepIdx === 0 ? 'disabled style="opacity:0.4;"' : ''} data-action="focus-recipe-step" data-recipe-id="${escapeHtml(recipe.id)}" data-step-idx="${Math.max(0, activeStepIdx - 1)}">
+                ← Prev
+              </button>
+              <button type="button" class="btn-primary focus-nav-btn" style="flex:1.6;" data-action="focus-step-done-next" data-recipe-id="${escapeHtml(recipe.id)}" data-step-idx="${activeStepIdx}">
+                ${activeStepIdx + 1 < steps.length ? '✓ Done · Next Step →' : '🎉 Finish Recipe'}
+              </button>
+            </div>
+          </div>
+
+          <div class="section-block">
+            <div class="section-header" data-action="toggle-focus-ingredients">
+              <div class="section-title-wrap">
+                <span>${uiPrefs.focusIngredientsOpen ? '▾' : '▸'}</span>
+                <span>Prep &amp; Ingredients Checklist</span>
+              </div>
+              <span class="section-count">${checkedIngCount}/${allIngCount} checked</span>
+            </div>
+            ${uiPrefs.focusIngredientsOpen ? `
+              <div class="section-items">
+                ${(recipe.ingredients || []).map(item => renderRecipeIngredientRow(recipe, item, baseS, currS, prog)).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `;
+        return;
+      }
+
+      // STANDARD FULL SCROLLABLE RECIPE MODE
+      content.innerHTML = `
+        ${topBarHtml}
 
         <div class="recipe-hero">
           <div style="margin-bottom:6px;"><span class="category-tag">${escapeHtml(badge)}</span></div>
@@ -2580,11 +2987,11 @@
           ${prepItems.length > 0 && ingItems.length === 0 ? `<button type="button" class="step-done-btn" data-action="reset-recipe-checks" data-recipe-id="${escapeHtml(recipe.id)}">Reset Checks</button>` : ''}
         </div>
         <div>
-          ${(recipe.steps || []).map((step, idx) => {
+          ${steps.map((step, idx) => {
             const isActive = idx === activeStepIdx;
             const isDone = Boolean(prog.completedSteps[idx]);
             return `
-              <div class="step-card ${isActive ? 'active-step' : ''} ${isDone ? 'completed-step' : ''}" data-action="focus-recipe-step" data-recipe-id="${escapeHtml(recipe.id)}" data-step-idx="${idx}">
+              <div class="step-card ${isActive ? 'active-step' : ''} ${isDone ? 'completed-step' : ''}" id="recipe-step-card-${idx}" data-action="focus-recipe-step" data-recipe-id="${escapeHtml(recipe.id)}" data-step-idx="${idx}">
                 <div class="step-card-header">
                   <span class="step-badge">${isActive ? '▶ Current Step ' + (idx + 1) : 'Step ' + (idx + 1)}</span>
                   <button type="button" class="step-done-btn" data-action="toggle-recipe-step-done" data-recipe-id="${escapeHtml(recipe.id)}" data-step-idx="${idx}">
@@ -2594,6 +3001,7 @@
                 <div class="step-body">
                   ${renderStepTextWithScalingAndTimers(step, baseS, currS, idx)}
                 </div>
+                ${renderStepTimerFooterButtons(step, idx)}
               </div>
             `;
           }).join('')}
@@ -2654,16 +3062,31 @@
       renderCookView();
     }
 
-    function toggleRecipeStepDone(recipeId, idx) {
+    function toggleRecipeStepDone(recipeId, idx, forceAdvance = false) {
       const r = appState.recipes.find(x => x.id === recipeId);
       if (!r || !r.steps || !r.steps[idx]) return;
       const prog = getCookingProgress(recipeId, r.baseServings);
-      prog.completedSteps[idx] = !prog.completedSteps[idx];
+      if (forceAdvance) {
+        prog.completedSteps[idx] = true;
+      } else {
+        prog.completedSteps[idx] = !prog.completedSteps[idx];
+      }
+      let nextIdx = null;
       if (prog.completedSteps[idx] && idx + 1 < r.steps.length) {
         prog.activeStep = idx + 1;
+        nextIdx = idx + 1;
       }
       saveLocalState();
       renderCookView();
+
+      if (nextIdx !== null && !uiPrefs.cookFocusMode) {
+        requestAnimationFrame(() => {
+          const nextEl = document.getElementById(`recipe-step-card-${nextIdx}`);
+          if (nextEl) {
+            nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
+      }
     }
 
     function resetRecipeChecks(recipeId) {
@@ -2675,6 +3098,40 @@
       prog.activeStep = 0;
       saveLocalState();
       renderCookView();
+    }
+
+    /* UNDO TOAST SNACKBAR HELPER */
+    let lastUndoState = null;
+    let undoToastTimer = null;
+
+    function showUndoToast(message, restoreFn) {
+      lastUndoState = restoreFn;
+      const toast = document.getElementById('undo-toast');
+      const textEl = document.getElementById('undo-toast-text');
+      if (!toast || !textEl) return;
+      textEl.textContent = message;
+      toast.classList.add('visible');
+      if (undoToastTimer) clearTimeout(undoToastTimer);
+      undoToastTimer = setTimeout(() => {
+        toast.classList.remove('visible');
+        lastUndoState = null;
+      }, 5500);
+    }
+
+    function undoLastDelete() {
+      if (typeof lastUndoState === 'function') {
+        lastUndoState();
+      }
+      lastUndoState = null;
+      if (undoToastTimer) clearTimeout(undoToastTimer);
+      const toast = document.getElementById('undo-toast');
+      if (toast) toast.classList.remove('visible');
+    }
+
+    function unrecordDeletedId(tabKey, id) {
+      if (!id || !syncMeta.deletedIds[tabKey]) return;
+      syncMeta.deletedIds[tabKey] = syncMeta.deletedIds[tabKey].filter(x => x !== id);
+      saveLocalState();
     }
 
     /* 3. RENDER MEAL PLAN VIEW */
@@ -2689,10 +3146,10 @@
       container.innerHTML = meals.map(m => {
         const hasRecipe = m.recipeId && appState.recipes.some(r => r.id === m.recipeId);
         return `
-          <div class="meal-card">
+          <div class="meal-card ${hasRecipe ? 'clickable-meal' : ''}" ${hasRecipe ? `data-action="open-recipe-from-meal" data-recipe-id="${escapeHtml(m.recipeId)}"` : ''}>
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
               <span class="meal-day-tag">${escapeHtml(m.day)}</span>
-              <button type="button" class="step-done-btn" data-action="delete-meal" data-id="${escapeHtml(m.id)}">✕</button>
+              <button type="button" class="step-done-btn" data-action="delete-meal" data-id="${escapeHtml(m.id)}" aria-label="Remove meal">✕</button>
             </div>
             <h3 class="meal-title">${escapeHtml(m.name)}</h3>
             <div class="recipe-meta-chips" style="margin-bottom:6px;">
@@ -2701,9 +3158,10 @@
             </div>
             ${m.notes ? `<p class="meal-notes">${escapeHtml(m.notes)}</p>` : ''}
             ${hasRecipe ? `
-              <button type="button" class="btn-primary" style="width:100%; height:42px; margin-top:6px;" data-action="open-recipe-from-meal" data-recipe-id="${escapeHtml(m.recipeId)}">
-                🍳 Open Kitchen Counter Recipe →
-              </button>
+              <div class="meal-recipe-link">
+                <span>🍳 Open in Kitchen Counter</span>
+                <span>→</span>
+              </div>
             ` : ''}
           </div>
         `;
@@ -2717,10 +3175,20 @@
     }
 
     function deleteMeal(id) {
+      const idx = appState.meals.findIndex(m => m.id === id);
+      if (idx === -1) return;
+      const removedMeal = appState.meals[idx];
       recordDeletedId('meals', id);
-      appState.meals = appState.meals.filter(m => m.id !== id);
+      appState.meals.splice(idx, 1);
       renderMealsView();
       schedulePushToGoogleSheets('meals');
+
+      showUndoToast(`Removed "${removedMeal.name}"`, () => {
+        unrecordDeletedId('meals', id);
+        appState.meals.splice(idx, 0, removedMeal);
+        renderMealsView();
+        schedulePushToGoogleSheets('meals');
+      });
     }
 
     /* 4. RENDER NOTES VIEW */
@@ -2734,9 +3202,14 @@
 
       container.innerHTML = notes.map(n => `
         <div class="note-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px;">
             <h3 style="margin:0; font-size:1.08rem; font-weight:700;">${n.pinned ? '📌 ' : ''}${escapeHtml(n.title)}</h3>
-            <button type="button" class="step-done-btn" data-action="delete-note" data-id="${escapeHtml(n.id)}">Delete</button>
+            <div style="display:flex; gap:6px; flex-shrink:0;">
+              ${n.type !== 'checklist' ? `
+                <button type="button" class="step-done-btn" data-action="edit-note" data-id="${escapeHtml(n.id)}">Edit</button>
+              ` : ''}
+              <button type="button" class="step-done-btn" data-action="delete-note" data-id="${escapeHtml(n.id)}">Delete</button>
+            </div>
           </div>
           ${n.type === 'checklist' ? `
             <div class="section-block" style="margin-bottom:8px;">
@@ -2746,12 +3219,13 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
                   </div>
                   <div class="grocery-text">${escapeHtml(item.text)}</div>
+                  <button type="button" class="step-done-btn" style="height:32px; padding:0 9px; font-size:0.75rem;" data-action="delete-note-item" data-note-id="${escapeHtml(n.id)}" data-item-id="${escapeHtml(item.id)}" aria-label="Remove item">✕</button>
                 </div>
               `).join('')}
             </div>
             <form style="display:flex; gap:6px;" data-action="add-note-checklist-item" data-note-id="${escapeHtml(n.id)}">
-              <input type="text" class="quick-input" style="height:38px; font-size:0.88rem;" placeholder="Add item to ${escapeHtml(n.title)}..." required />
-              <button type="submit" class="btn-secondary" style="flex:0 0 64px; height:38px;">Add</button>
+              <input type="text" class="quick-input" style="height:40px; font-size:0.88rem;" placeholder="Add item to ${escapeHtml(n.title)}..." required />
+              <button type="submit" class="btn-secondary" style="flex:0 0 68px; height:40px;">Add</button>
             </form>
           ` : `
             <div style="white-space:pre-wrap; color:var(--text-secondary); font-size:0.95rem;">${escapeHtml(n.content)}</div>
@@ -2771,6 +3245,25 @@
       schedulePushToGoogleSheets('notes');
     }
 
+    function deleteNoteChecklistItem(noteId, itemId) {
+      const note = appState.notes.find(n => n.id === noteId);
+      if (!note || !note.items) return;
+      const idx = note.items.findIndex(i => i.id === itemId);
+      if (idx === -1) return;
+      const removedItem = note.items[idx];
+      note.items.splice(idx, 1);
+      note.updatedAt = new Date().toISOString();
+      renderNotesView();
+      schedulePushToGoogleSheets('notes');
+
+      showUndoToast(`Removed "${removedItem.text}"`, () => {
+        note.items.splice(idx, 0, removedItem);
+        note.updatedAt = new Date().toISOString();
+        renderNotesView();
+        schedulePushToGoogleSheets('notes');
+      });
+    }
+
     function addNoteChecklistItem(formEl, noteId) {
       const input = formEl.querySelector('input');
       const val = input ? input.value.trim() : '';
@@ -2786,20 +3279,30 @@
     }
 
     function deleteNote(id) {
+      const idx = appState.notes.findIndex(n => n.id === id);
+      if (idx === -1) return;
+      const removedNote = appState.notes[idx];
       recordDeletedId('notes', id);
-      appState.notes = appState.notes.filter(n => n.id !== id);
+      appState.notes.splice(idx, 1);
       renderNotesView();
       schedulePushToGoogleSheets('notes');
+
+      showUndoToast(`Deleted note "${removedNote.title}"`, () => {
+        unrecordDeletedId('notes', id);
+        appState.notes.splice(idx, 0, removedNote);
+        renderNotesView();
+        schedulePushToGoogleSheets('notes');
+      });
     }
 
     /********************************************************************
      * NAVIGATION, MODALS & DELEGATED EVENT LISTENERS
      ********************************************************************/
     const VIEW_TITLES = {
-      grocery: 'Grocery List',
-      cook: 'Recipe Gallery',
-      meals: 'Meal Plan',
-      notes: 'Notes & Lists'
+      grocery: 'Groceries',
+      cook: 'Recipes',
+      meals: 'Meals',
+      notes: 'Notes'
     };
 
     function switchView(viewName) {
@@ -2854,10 +3357,32 @@
     }
 
     function openAddMealModal() {
+      const sel = document.getElementById('meal-recipe-select');
+      if (sel) {
+        const recipes = [...(appState.recipes || [])].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        sel.innerHTML = `<option value="">— None (Custom Meal) —</option>` +
+          recipes.map(r => `<option value="${escapeHtml(r.id)}">${escapeHtml(r.title)}</option>`).join('');
+      }
       document.getElementById('add-meal-modal').classList.add('open');
     }
 
     function openAddNoteModal() {
+      document.getElementById('note-modal-title').textContent = 'New Note / Checklist';
+      document.getElementById('note-edit-id-input').value = '';
+      document.getElementById('note-type-field').style.display = 'block';
+      document.getElementById('add-note-form').reset();
+      document.getElementById('add-note-modal').classList.add('open');
+    }
+
+    function openEditNoteModal(noteId) {
+      const note = appState.notes.find(n => n.id === noteId);
+      if (!note) return;
+      document.getElementById('note-modal-title').textContent = 'Edit Note';
+      document.getElementById('note-edit-id-input').value = note.id;
+      document.getElementById('note-title-input').value = note.title || '';
+      document.getElementById('note-type-input').value = note.type || 'text';
+      document.getElementById('note-type-field').style.display = 'none';
+      document.getElementById('note-content-input').value = note.content || '';
       document.getElementById('add-note-modal').classList.add('open');
     }
 
@@ -2869,6 +3394,10 @@
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem(STORAGE_KEYS.THEME, theme);
       document.getElementById('meta-theme-color').setAttribute('content', theme === 'dark' ? '#0d1210' : '#ffffff');
+      const themeBtn = document.getElementById('theme-btn');
+      if (themeBtn) {
+        themeBtn.textContent = theme === 'dark' ? '◐ Dark Mode (Tap for Light)' : '☀ Light Mode (Tap for Dark)';
+      }
     }
 
     // Unified Delegated Click Listener (Immune to quotes, inch marks, and apostrophes)
@@ -2895,6 +3424,9 @@
           break;
         case 'test-timer-alert':
           testTimerChimeAndBuzz();
+          break;
+        case 'undo-last-delete':
+          undoLastDelete();
           break;
         case 'start-timer':
           e.stopPropagation();
@@ -2931,6 +3463,15 @@
           e.stopPropagation();
           togglePinRecipe(actionEl.dataset.recipeId);
           break;
+        case 'toggle-cook-focus-mode':
+          toggleCookFocusMode();
+          break;
+        case 'toggle-focus-ingredients':
+          toggleFocusIngredients();
+          break;
+        case 'focus-step-done-next':
+          focusStepDoneAndNext(actionEl.dataset.recipeId, Number(actionEl.dataset.stepIdx));
+          break;
         case 'set-recipe-servings':
           setRecipeServings(actionEl.dataset.recipeId, Number(actionEl.dataset.servings));
           break;
@@ -2954,10 +3495,18 @@
           openRecipeFromMeal(actionEl.dataset.recipeId);
           break;
         case 'delete-meal':
+          e.stopPropagation();
           deleteMeal(actionEl.dataset.id);
           break;
         case 'toggle-note-item':
           toggleNoteChecklistItem(actionEl.dataset.noteId, actionEl.dataset.itemId);
+          break;
+        case 'delete-note-item':
+          e.stopPropagation();
+          deleteNoteChecklistItem(actionEl.dataset.noteId, actionEl.dataset.itemId);
+          break;
+        case 'edit-note':
+          openEditNoteModal(actionEl.dataset.id);
           break;
         case 'delete-note':
           deleteNote(actionEl.dataset.id);
@@ -2977,6 +3526,41 @@
     // Recipe Search Input Listener
     document.getElementById('recipe-search-input').addEventListener('input', (e) => {
       onRecipeSearchInput(e.target.value);
+    });
+
+    // Smart Aisle Auto-Selection on Grocery Quick Add
+    let grocerySectionManuallyChosen = false;
+    document.getElementById('grocery-section-select').addEventListener('change', () => {
+      grocerySectionManuallyChosen = true;
+    });
+    document.getElementById('grocery-input').addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (!val.trim()) {
+        grocerySectionManuallyChosen = false;
+        return;
+      }
+      if (!grocerySectionManuallyChosen) {
+        const inferred = inferGrocerySection(val);
+        if (inferred) {
+          document.getElementById('grocery-section-select').value = inferred;
+        }
+      }
+    });
+
+    // Auto-fill Meal Name & Time when selecting a Recipe from the gallery dropdown
+    document.getElementById('meal-recipe-select').addEventListener('change', (e) => {
+      const recId = e.target.value;
+      if (!recId) return;
+      const r = (appState.recipes || []).find(x => x.id === recId);
+      if (!r) return;
+      const nameInput = document.getElementById('meal-name-input');
+      const timeInput = document.getElementById('meal-time-input');
+      if (nameInput && !nameInput.value.trim()) {
+        nameInput.value = r.title || '';
+      }
+      if (timeInput && !timeInput.value.trim()) {
+        timeInput.value = [r.prepTime, r.cookTime].filter(Boolean).join(' + ') || r.cookTime || r.prepTime || '';
+      }
     });
 
     // Wire up Bottom Nav & Top Bar UI events
@@ -3004,15 +3588,19 @@
       const secSelect = document.getElementById('grocery-section-select');
       const text = input.value.trim();
       if (!text) return;
+      const chosenSection = grocerySectionManuallyChosen
+        ? secSelect.value
+        : (inferGrocerySection(text) || secSelect.value);
       appState.grocery.push({
         id: 'g-' + Date.now(),
-        section: secSelect.value,
+        section: chosenSection,
         item: text,
         checked: false,
         sortOrder: appState.grocery.length + 1,
         updatedAt: new Date().toISOString()
       });
       input.value = '';
+      grocerySectionManuallyChosen = false;
       renderGroceryView();
       schedulePushToGoogleSheets('grocery');
     });
@@ -3026,22 +3614,32 @@
     document.getElementById('clear-checked-btn').addEventListener('click', () => {
       const checkedItems = appState.grocery.filter(i => i.checked);
       if (checkedItems.length === 0) return;
+      const snapshot = checkedItems.map(i => ({ ...i }));
       checkedItems.forEach(i => recordDeletedId('grocery', i.id));
       appState.grocery = appState.grocery.filter(i => !i.checked);
       renderGroceryView();
       schedulePushToGoogleSheets('grocery');
+
+      showUndoToast(`Cleared ${snapshot.length} checked item${snapshot.length === 1 ? '' : 's'}`, () => {
+        snapshot.forEach(i => unrecordDeletedId('grocery', i.id));
+        appState.grocery.push(...snapshot);
+        renderGroceryView();
+        schedulePushToGoogleSheets('grocery');
+      });
     });
 
     document.getElementById('add-meal-form').addEventListener('submit', (e) => {
       e.preventDefault();
+      const linkedRecipeId = document.getElementById('meal-recipe-select').value || '';
+      const difficultyVal = document.getElementById('meal-difficulty-select').value || 'Easy';
       appState.meals.push({
         id: 'm-' + Date.now(),
         day: document.getElementById('meal-day-input').value.trim(),
         name: document.getElementById('meal-name-input').value.trim(),
         time: document.getElementById('meal-time-input').value.trim(),
-        difficulty: 'Medium',
+        difficulty: difficultyVal,
         notes: document.getElementById('meal-notes-input').value.trim(),
-        recipeId: '',
+        recipeId: linkedRecipeId,
         updatedAt: new Date().toISOString()
       });
       e.target.reset();
@@ -3052,22 +3650,34 @@
 
     document.getElementById('add-note-form').addEventListener('submit', (e) => {
       e.preventDefault();
+      const editId = document.getElementById('note-edit-id-input').value.trim();
       const title = document.getElementById('note-title-input').value.trim();
       const type = document.getElementById('note-type-input').value;
       const content = document.getElementById('note-content-input').value.trim();
-      const items = type === 'checklist'
-        ? content.split('\n').map(s => s.trim()).filter(Boolean).map((t, i) => ({ id: `ci-${Date.now()}-${i}`, text: t, checked: false }))
-        : [];
-      appState.notes.unshift({
-        id: 'n-' + Date.now(),
-        title,
-        type,
-        content,
-        items,
-        pinned: false,
-        updatedAt: new Date().toISOString()
-      });
+
+      if (editId) {
+        const existing = appState.notes.find(n => n.id === editId);
+        if (existing) {
+          existing.title = title;
+          existing.content = content;
+          existing.updatedAt = new Date().toISOString();
+        }
+      } else {
+        const items = type === 'checklist'
+          ? content.split('\n').map(s => s.trim()).filter(Boolean).map((t, i) => ({ id: `ci-${Date.now()}-${i}`, text: t, checked: false }))
+          : [];
+        appState.notes.unshift({
+          id: 'n-' + Date.now(),
+          title,
+          type,
+          content,
+          items,
+          pinned: false,
+          updatedAt: new Date().toISOString()
+        });
+      }
       e.target.reset();
+      document.getElementById('note-edit-id-input').value = '';
       closeModals();
       renderNotesView();
       schedulePushToGoogleSheets('notes');
@@ -3075,7 +3685,8 @@
 
     // Boot Application
     (function init() {
-      const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || 'dark';
+      const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) ||
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
       applyTheme(savedTheme);
       loadLocalState();
       // Always start fresh on search query on full app boot so gallery isn't unexpectedly empty
