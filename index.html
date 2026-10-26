@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://oauth2.googleapis.com https://sheets.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self';" />
   <title>Pocket Kitchen &amp; Lists</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/svg+xml" href="icon.svg" />
@@ -140,7 +140,7 @@
     }
 
     .sync-pill {
-      display: inline-flex;
+      display: none;
       align-items: center;
       gap: 5px;
       font-size: 0.73rem;
@@ -156,6 +156,12 @@
       flex-shrink: 0;
     }
 
+    .sync-pill.syncing,
+    .sync-pill.error,
+    .sync-pill.unlinked {
+      display: inline-flex;
+    }
+
     .sync-dot {
       width: 7px;
       height: 7px;
@@ -165,6 +171,7 @@
     .sync-pill.synced .sync-dot { background: var(--accent); }
     .sync-pill.syncing .sync-dot { background: var(--warn); animation: pulse 1s infinite; }
     .sync-pill.error .sync-dot { background: var(--danger); }
+    .sync-pill.unlinked .sync-dot { background: var(--text-muted); }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; }
@@ -178,7 +185,29 @@
       flex-shrink: 0;
     }
 
+    .header-add-btn {
+      height: 38px;
+      padding: 0 13px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #062117;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .header-add-btn.visible {
+      display: inline-flex;
+    }
+
     .icon-btn, .wake-btn {
+      width: 40px;
       height: 40px;
       border-radius: 999px;
       border: 1px solid var(--border-subtle);
@@ -187,26 +216,23 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
-      padding: 0 12px;
-      font-size: 0.82rem;
-      font-weight: 700;
+      padding: 0;
+      font-size: 1.05rem;
       cursor: pointer;
-      white-space: nowrap;
       flex-shrink: 0;
       transition: all 0.15s ease;
     }
 
-    .icon-btn {
-      width: 40px;
-      padding: 0;
-      font-size: 1.05rem;
+    .wake-btn svg {
+      width: 19px;
+      height: 19px;
+      stroke-width: 2.1;
     }
 
     .wake-btn.active {
-      background: var(--warn-soft);
-      color: var(--warn);
-      border-color: var(--warn);
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent-border);
     }
 
     /* Main Content Container */
@@ -224,20 +250,6 @@
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Connection Banner */
-    .connect-banner {
-      background: var(--accent-soft);
-      border: 1px solid var(--accent-border);
-      border-radius: var(--radius-md);
-      padding: 12px 14px;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      font-size: 0.86rem;
     }
 
     /* Grocery View */
@@ -796,10 +808,40 @@
       white-space: nowrap;
     }
 
-    .step-card.completed-step .step-done-btn {
-      background: var(--accent-soft);
-      color: var(--accent);
-      border-color: var(--accent-border);
+    .step-check-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 2px solid var(--text-muted);
+      background: var(--bg-input);
+      color: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      padding: 0;
+      transition: all 0.14s ease;
+    }
+
+    .step-check-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 3;
+      opacity: 0;
+      transform: scale(0.75);
+      transition: all 0.14s ease;
+    }
+
+    .step-check-btn.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #062117;
+    }
+
+    .step-check-btn.checked svg {
+      opacity: 1;
+      transform: scale(1);
     }
 
     .step-body {
@@ -828,8 +870,8 @@
       border: 1px solid rgba(251, 191, 36, 0.45);
       font-weight: 700;
       font-size: 0.94rem;
-      min-height: 36px;
-      padding: 5px 12px;
+      min-height: 40px;
+      padding: 6px 13px;
       border-radius: 999px;
       margin: 3px 2px;
       cursor: pointer;
@@ -845,19 +887,17 @@
       flex-wrap: wrap;
       gap: 8px;
       margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px dashed var(--border-subtle);
     }
 
     .step-timer-big-btn {
-      height: 44px;
-      padding: 0 15px;
+      min-height: 46px;
+      padding: 8px 16px;
       border-radius: 12px;
       background: var(--warn-soft);
       color: var(--warn);
       border: 1.5px solid rgba(251, 191, 36, 0.45);
       font-weight: 800;
-      font-size: 0.92rem;
+      font-size: 0.94rem;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -880,7 +920,7 @@
       font-size: 1.32rem;
       line-height: 1.62;
       color: var(--text-primary);
-      margin: 14px 0 18px;
+      margin: 14px 0 16px;
     }
 
     .focus-nav-bar {
@@ -902,7 +942,7 @@
       gap: 6px;
     }
 
-    /* Floating Kitchen Timer Dock — Sleek while running, flashing border when done */
+    /* Floating Kitchen Timer Dock — Slim expandable pill while running, prominent when done */
     .timer-dock {
       position: fixed;
       left: 12px;
@@ -913,7 +953,7 @@
       z-index: 45;
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 6px;
       pointer-events: none;
     }
 
@@ -921,15 +961,36 @@
       pointer-events: auto;
       background: #15211c;
       color: #f1f5f3;
-      border: 1.5px solid rgba(251, 191, 36, 0.55);
+      border: 1.5px solid rgba(251, 191, 36, 0.52);
       border-radius: 14px;
-      padding: 8px 12px;
+      padding: 8px 13px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
       gap: 8px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
       opacity: 1 !important;
+      cursor: pointer;
+    }
+
+    .timer-bar-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-width: 0;
+      width: 100%;
+    }
+
+    .timer-bar-controls {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    [data-theme="light"] .timer-bar-controls {
+      border-top-color: rgba(15, 28, 21, 0.1);
     }
 
     [data-theme="light"] .timer-bar {
@@ -955,6 +1016,7 @@
       border-width: 3.5px;
       border-color: var(--accent);
       opacity: 1 !important;
+      cursor: default;
       animation: timerBorderFlash 1.15s ease-in-out infinite;
     }
 
@@ -964,7 +1026,7 @@
     }
 
     .timer-countdown {
-      font-size: 1.16rem;
+      font-size: 1.08rem;
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       color: var(--warn);
@@ -1213,17 +1275,20 @@
     <div class="top-bar-inner">
       <div class="brand-group">
         <span class="brand-title" id="header-title">Groceries</span>
-        <div class="sync-pill" id="sync-pill" title="Tap to sync with Google Sheets">
+        <div class="sync-pill" id="sync-pill" title="Sync status">
           <span class="sync-dot"></span>
-          <span id="sync-text">Local</span>
+          <span id="sync-text">Link Sync</span>
         </div>
       </div>
       <div class="header-actions">
-        <button class="wake-btn" id="wake-btn" title="Keep screen awake while shopping or cooking">
-          <span id="wake-icon">☀</span>
-          <span id="wake-label">Awake</span>
+        <button type="button" class="header-add-btn" id="header-add-btn" data-action="header-contextual-add">+ Add</button>
+        <button type="button" class="wake-btn" id="wake-btn" title="Keep screen awake" aria-label="Keep screen awake">
+          <svg id="wake-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
         </button>
-        <button class="icon-btn" id="settings-btn" title="Settings, Theme &amp; Sync">⚙</button>
+        <button type="button" class="icon-btn" id="settings-btn" title="Settings &amp; Sync" aria-label="Settings">⚙</button>
       </div>
     </div>
   </header>
@@ -1231,14 +1296,6 @@
   <main class="app-shell" id="app-shell">
     <!-- 1. GROCERY LIST VIEW -->
     <section class="view-container active" id="view-grocery">
-      <div id="unconnected-notice" class="connect-banner" style="display:none;">
-        <div>
-          <strong>Offline / Local Mode</strong><br/>
-          <span>Open your one-tap connection link from PC to enable live Google Sheets sync.</span>
-        </div>
-        <button class="btn-secondary" style="flex:0 0 auto; height:38px; padding:0 12px;" data-action="open-settings-modal">Link</button>
-      </div>
-
       <div class="progress-card">
         <div class="progress-header">
           <div>
@@ -1269,7 +1326,7 @@
       <div id="grocery-sections-container"></div>
 
       <div class="list-footer-bar">
-        <button class="btn-secondary danger" id="clear-checked-btn">Clear Checked Items</button>
+        <button type="button" class="btn-secondary danger" id="clear-checked-btn">Clear Checked Items</button>
       </div>
     </section>
 
@@ -1277,7 +1334,7 @@
     <section class="view-container" id="view-cook">
       <div id="recipe-gallery-view">
         <div style="margin-bottom:10px;">
-          <input type="search" class="quick-input" style="width:100%;" id="recipe-search-input" placeholder="🔍 Search recipes or ingredients (e.g. sweet potato, soup)..." />
+          <input type="search" class="quick-input" style="width:100%;" id="recipe-search-input" placeholder="🔍 Search recipes or ingredients…" />
         </div>
         <div class="recipe-switcher" id="recipe-category-pills"></div>
         <div id="recipe-gallery-list"></div>
@@ -1289,19 +1346,11 @@
 
     <!-- 3. MEAL PLAN VIEW -->
     <section class="view-container" id="view-meals">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <span style="font-size:0.9rem; color:var(--text-secondary); font-weight:600;">Upcoming Planned Meals</span>
-        <button class="btn-primary" style="height:40px; font-size:0.86rem;" data-action="open-add-meal-modal">+ Add Meal</button>
-      </div>
       <div id="meals-container"></div>
     </section>
 
     <!-- 4. NOTES VIEW -->
     <section class="view-container" id="view-notes">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <span style="font-size:0.9rem; color:var(--text-secondary); font-weight:600;">Notes &amp; Secondary Lists</span>
-        <button class="btn-primary" style="height:40px; font-size:0.86rem;" data-action="open-add-note-modal">+ New Note</button>
-      </div>
       <div id="notes-container"></div>
     </section>
   </main>
@@ -1365,29 +1414,29 @@
   <!-- Settings / Connection Modal -->
   <div class="modal-backdrop" id="settings-modal">
     <div class="modal-card">
-      <h3 class="modal-title">Settings, Theme &amp; Sync</h3>
-      <p style="font-size:0.86rem; color:var(--text-secondary); margin-top:0;">
-        Your personal data lives privately in your Google Sheet and is cached in your phone's local storage for instant offline access.
-      </p>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 class="modal-title" style="margin:0;">Settings</h3>
+        <button type="button" class="step-done-btn" style="height:34px; padding:0 12px;" data-action="sync-now">↻ Sync Now</button>
+      </div>
       <div class="form-group">
         <label class="form-label">Appearance</label>
         <button type="button" class="btn-secondary" style="width:100%; height:42px;" id="theme-btn">◐ Switch Dark / Light Theme</button>
       </div>
       <div class="form-group">
-        <label class="form-label">Connection Status</label>
+        <label class="form-label">Sync Connection</label>
         <div id="settings-status-box" style="padding:10px 12px; border-radius:10px; background:var(--bg-input); font-size:0.85rem;"></div>
       </div>
       <div class="form-group">
-        <label class="form-label">Kitchen Timer Sound &amp; Haptic Test</label>
+        <label class="form-label">Timer Alert</label>
         <button type="button" class="btn-secondary" style="width:100%; height:42px;" data-action="test-timer-alert">🔔 Test Gentle Chime &amp; Vibration</button>
       </div>
       <div class="form-group">
-        <label class="form-label">Paste Connection Code (if linking manually)</label>
+        <label class="form-label">Connection Link (only needed once)</label>
         <input type="text" class="quick-input" style="width:100%;" id="manual-connect-input" placeholder="Paste #connect=... code or link" />
       </div>
       <div style="display:flex; gap:8px; margin-top:16px;">
-        <button class="btn-primary" style="flex:1;" data-action="save-manual-connect">Save &amp; Sync</button>
-        <button class="btn-secondary" style="flex:1;" data-action="close-modals">Close</button>
+        <button type="button" class="btn-primary" style="flex:1;" data-action="save-manual-connect">Save &amp; Sync</button>
+        <button type="button" class="btn-secondary" style="flex:1;" data-action="close-modals">Close</button>
       </div>
     </div>
   </div>
@@ -1402,7 +1451,7 @@
           <input type="text" class="quick-input" style="width:100%;" id="meal-day-input" placeholder="e.g., Tonight, Thursday, Weekend" required />
         </div>
         <div class="form-group">
-          <label class="form-label">Link to Recipe Gallery (Optional)</label>
+          <label class="form-label">Link Recipe (Optional)</label>
           <select class="quick-select" style="width:100%;" id="meal-recipe-select">
             <option value="">— Custom / Unlinked Meal —</option>
           </select>
@@ -1411,23 +1460,13 @@
           <label class="form-label">Meal Name</label>
           <input type="text" class="quick-input" style="width:100%;" id="meal-name-input" placeholder="e.g., Paneer Makhani with Garlic Naan" required />
         </div>
-        <div style="display:flex; gap:8px;">
-          <div class="form-group" style="flex:2;">
-            <label class="form-label">Realistic Time Estimate</label>
-            <input type="text" class="quick-input" style="width:100%;" id="meal-time-input" placeholder="e.g., 55m total" />
-          </div>
-          <div class="form-group" style="flex:1;">
-            <label class="form-label">Difficulty</label>
-            <select class="quick-select" style="width:100%;" id="meal-difficulty-select">
-              <option value="Easy">Easy</option>
-              <option value="Medium" selected>Medium</option>
-              <option value="Hard">Hard</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label class="form-label">Time Estimate (Optional)</label>
+          <input type="text" class="quick-input" style="width:100%;" id="meal-time-input" placeholder="e.g., 55m total" />
         </div>
         <div class="form-group">
-          <label class="form-label">Notes / Adaptations</label>
-          <textarea class="form-textarea" id="meal-notes-input" placeholder="Vegetarian adaptations, ingredients to use up, etc."></textarea>
+          <label class="form-label">Notes</label>
+          <textarea class="form-textarea" id="meal-notes-input" placeholder="Ingredients to use up, sides, etc."></textarea>
         </div>
         <div style="display:flex; gap:8px;">
           <button type="submit" class="btn-primary" style="flex:1;">Save Meal</button>
@@ -1440,7 +1479,7 @@
   <!-- Add / Edit Note Modal -->
   <div class="modal-backdrop" id="add-note-modal">
     <div class="modal-card">
-      <h3 class="modal-title" id="note-modal-title">New Note or Checklist</h3>
+      <h3 class="modal-title" id="note-modal-title">New Note</h3>
       <form id="add-note-form">
         <input type="hidden" id="note-edit-id-input" value="" />
         <div class="form-group">
@@ -1455,11 +1494,12 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Content</label>
+          <label class="form-label" id="note-content-label">Content</label>
           <textarea class="form-textarea" id="note-content-input" placeholder="Enter items (one per line) or note text..." required></textarea>
         </div>
         <div style="display:flex; gap:8px;">
-          <button type="submit" class="btn-primary" style="flex:1;">Save Note</button>
+          <button type="button" class="btn-secondary danger" id="delete-note-modal-btn" style="display:none; flex:0 0 auto; padding:0 14px;" data-action="delete-note-from-modal">Delete</button>
+          <button type="submit" class="btn-primary" style="flex:1;">Save</button>
           <button type="button" class="btn-secondary" style="flex:1;" data-action="close-modals">Cancel</button>
         </div>
       </form>
@@ -1509,7 +1549,10 @@
       activeView: 'grocery',
       hideCheckedGrocery: false,
       collapsedSections: {},
+      learnedAisles: {},
       cookSubView: 'gallery', // 'gallery' | 'detail'
+      cookFocusMode: false,
+      focusIngredientsOpen: false,
       recipeCategoryFilter: 'all',
       recipeSearchQuery: '',
       selectedRecipeId: null,
@@ -1517,23 +1560,35 @@
       cookingProgress: {} // { [recipeId]: { servings, checkedIngredients: {}, completedSteps: {}, activeStep: 0 } }
     };
 
+    const tabScrollPositions = {
+      grocery: 0,
+      cook: 0,
+      meals: 0,
+      notes: 0
+    };
+
     let syncMeta = {
-      dirtyTabs: [], // ['grocery', 'recipes', 'meals', 'notes']
+      seq: 0,
+      dirtyRows: {
+        grocery: {},
+        meals: {},
+        notes: {}
+      },
       deletedIds: {
         grocery: {},
         meals: {},
         notes: {}
       },
-      pinnedRecipes: {} // { [recipeId]: boolean }
+      pinnedRecipes: {} // { [recipeId]: { value: boolean, seq: number } }
     };
 
     let activeTimers = [];
+    let expandedTimerId = null;
+    let lastTimerStructureSig = '';
     let timerInterval = null;
     let kitchenAudioCtx = null;
     let wakeLockSentinel = null;
     let wakeLockDesired = false;
-    let cachedAccessToken = null;
-    let cachedTokenExpiry = 0;
     let syncDebounceTimer = null;
     let isSyncInFlight = false;
     let resyncQueued = false;
@@ -1655,6 +1710,14 @@
       return `Step ${stepIndex + 1} (${matchStr})`;
     }
 
+    function shortenDurationLabel(str) {
+      return String(str || '')
+        .replace(/\bminutes?\b/gi, 'min')
+        .replace(/\bhours?\b/gi, 'hr')
+        .replace(/\bseconds?\b/gi, 'sec')
+        .trim();
+    }
+
     function extractStepTimers(stepObjOrText, stepIndex) {
       const isObj = stepObjOrText && typeof stepObjOrText === 'object';
       const rawText = isObj ? (stepObjOrText.text || '') : String(stepObjOrText || '');
@@ -1670,7 +1733,7 @@
         const customAction = parts[1] || stepTimerLabel || `Step ${stepIndex + 1}`;
         const seconds = parseDurationToSeconds(durationText);
         const fullLabel = customAction.includes('(') ? customAction : `${customAction} (${durationText})`;
-        timers.push({ seconds, durationText, fullLabel });
+        timers.push({ seconds, durationText, shortDuration: shortenDurationLabel(durationText), fullLabel });
         return '';
       });
 
@@ -1678,14 +1741,15 @@
       remaining.replace(durationRegex, (match) => {
         const seconds = parseDurationToSeconds(match);
         const fullLabel = inferTimerActionLabel(rawText, match, stepIndex, stepTimerLabel);
-        timers.push({ seconds, durationText: match, fullLabel });
+        timers.push({ seconds, durationText: match, shortDuration: shortenDurationLabel(match), fullLabel });
         return match;
       });
 
       return timers;
     }
 
-    function renderStepTextWithScalingAndTimers(stepObjOrText, baseServings, currentServings, stepIndex) {
+    function renderStepTextWithScalingAndTimers(stepObjOrText, baseServings, currentServings, stepIndex, options = {}) {
+      const includeTimerChips = options.includeTimerChips !== false;
       const isObj = stepObjOrText && typeof stepObjOrText === 'object';
       const rawText = isObj ? (stepObjOrText.text || '') : String(stepObjOrText || '');
       const stepTimerLabel = isObj ? (stepObjOrText.timerLabel || '') : '';
@@ -1713,6 +1777,14 @@
         const combined = [scaledStr, unit, label].filter(Boolean).join(' ');
         return `<span class="inline-qty">${combined}</span>`;
       });
+
+      if (!includeTimerChips) {
+        // In Focus Mode, strip [[duration|label]] brackets into clean readable text; big buttons sit below
+        return html.replace(/\[\[([^\]]+)\]\]/g, (_, inner) => {
+          const parts = inner.split('|').map(s => s.trim());
+          return `<strong>${parts[0] || ''}</strong>`;
+        });
+      }
 
       // 2. Replace explicit labeled timers [[15 minutes|Soak cashews]] first using placeholders
       const explicitTimerPlaceholders = [];
@@ -1783,17 +1855,15 @@
 
     function updateWakeButtonUI() {
       const btn = document.getElementById('wake-btn');
-      const icon = document.getElementById('wake-icon');
-      const label = document.getElementById('wake-label');
+      const iconCircle = document.querySelector('#wake-icon circle');
       const isLocked = Boolean(wakeLockSentinel && !wakeLockSentinel.released);
-      if (wakeLockDesired || isLocked) {
-        btn.classList.add('active');
-        icon.textContent = '🔆';
-        label.textContent = 'Awake';
-      } else {
-        btn.classList.remove('active');
-        icon.textContent = '☀';
-        label.textContent = 'Awake';
+      const isOn = wakeLockDesired || isLocked;
+      if (btn) {
+        btn.classList.toggle('active', isOn);
+        btn.setAttribute('title', isOn ? 'Screen awake ON (tap to turn off)' : 'Keep screen awake');
+      }
+      if (iconCircle) {
+        iconCircle.setAttribute('fill', isOn ? 'currentColor' : 'none');
       }
     }
 
@@ -1897,6 +1967,7 @@
                 t.running = false;
                 t.endTime = null;
                 t.lastAlertAt = now;
+                if (expandedTimerId === t.id) expandedTimerId = null;
                 stateMutated = true;
                 playGentleKitchenChime();
                 triggerSystemHapticNotification(t);
@@ -2012,6 +2083,13 @@
       return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
+    function toggleTimerExpand(id) {
+      const t = activeTimers.find(x => x.id === id);
+      if (!t || t.finished) return;
+      expandedTimerId = expandedTimerId === id ? null : id;
+      renderTimers(true);
+    }
+
     function toggleTimerPause(id) {
       const t = activeTimers.find(x => x.id === id);
       if (!t) return;
@@ -2028,7 +2106,7 @@
         t.endTime = Date.now() + (t.remainingSeconds || 0) * 1000;
       }
       saveTimersToStorage();
-      renderTimers();
+      renderTimers(true);
     }
 
     function addMinuteToTimer(id) {
@@ -2044,21 +2122,25 @@
       t.running = true;
       saveTimersToStorage();
       ensureTimerLoop();
-      renderTimers();
+      renderTimers(true);
     }
 
     function dismissTimer(id) {
       clearSystemTimerNotification(id);
+      if (expandedTimerId === id) expandedTimerId = null;
       activeTimers = activeTimers.filter(x => x.id !== id);
       saveTimersToStorage();
-      renderTimers();
+      renderTimers(true);
     }
 
-    function renderTimers() {
+    function renderTimers(forceRebuild = false) {
       const dock = document.getElementById('timer-dock');
       if (activeTimers.length === 0) {
-        dock.innerHTML = '';
-        document.documentElement.style.setProperty('--timer-dock-offset', '0px');
+        if (lastTimerStructureSig !== '') {
+          dock.innerHTML = '';
+          lastTimerStructureSig = '';
+          document.documentElement.style.setProperty('--timer-dock-offset', '0px');
+        }
         return;
       }
 
@@ -2068,19 +2150,62 @@
         return (a.remainingSeconds || 0) - (b.remainingSeconds || 0);
       });
 
-      dock.innerHTML = sortedTimers.map(t => `
-        <div class="timer-bar ${t.finished ? 'finished' : ''}" ${t.finished ? `data-action="dismiss-timer" data-id="${escapeHtml(t.id)}"` : ''}>
-          <div style="display:flex; align-items:center; gap:9px; min-width:0; flex:1;">
-            <span class="timer-countdown">${t.finished ? '🔔 Done!' : formatClock(t.remainingSeconds)}</span>
-            <span style="font-size:0.84rem; color:var(--text-primary); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(t.label)}</span>
+      const sig = sortedTimers
+        .map(t => `${t.id}:${t.running ? 1 : 0}:${t.finished ? 1 : 0}:${expandedTimerId === t.id ? 1 : 0}`)
+        .join('|');
+
+      // Fast path on 1-second ticks: update countdown text only so buttons are NEVER destroyed mid-tap!
+      if (!forceRebuild && sig === lastTimerStructureSig) {
+        for (const t of sortedTimers) {
+          if (!t.finished) {
+            const clockEl = document.getElementById('timer-clock-' + t.id);
+            if (clockEl) clockEl.textContent = formatClock(t.remainingSeconds);
+          }
+        }
+        return;
+      }
+
+      lastTimerStructureSig = sig;
+      dock.innerHTML = sortedTimers.map(t => {
+        if (t.finished) {
+          return `
+            <div class="timer-bar finished">
+              <div class="timer-bar-main">
+                <div style="display:flex; align-items:center; gap:9px; min-width:0; flex:1;">
+                  <span class="timer-countdown" id="timer-clock-${escapeHtml(t.id)}">🔔 Done!</span>
+                  <span style="font-size:0.9rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(t.label)}</span>
+                </div>
+                <div style="display:flex; gap:6px; flex-shrink:0;">
+                  <button type="button" class="step-done-btn" style="height:38px; padding:0 12px;" data-action="add-timer-minute" data-id="${escapeHtml(t.id)}">+1m</button>
+                  <button type="button" class="btn-primary" style="height:38px; padding:0 15px; border-radius:999px;" data-action="dismiss-timer" data-id="${escapeHtml(t.id)}">OK</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        const isExpanded = expandedTimerId === t.id;
+        return `
+          <div class="timer-bar" data-action="toggle-timer-expand" data-id="${escapeHtml(t.id)}">
+            <div class="timer-bar-main">
+              <div style="display:flex; align-items:center; gap:9px; min-width:0; flex:1;">
+                <span class="timer-countdown" id="timer-clock-${escapeHtml(t.id)}">${formatClock(t.remainingSeconds)}</span>
+                <span style="font-size:0.86rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(t.label)}</span>
+              </div>
+              <span style="font-size:0.78rem; color:var(--text-secondary); font-weight:700; flex-shrink:0;">
+                ${!t.running ? '⏸ Paused · ' : ''}${isExpanded ? '▴' : '▾'}
+              </span>
+            </div>
+            ${isExpanded ? `
+              <div class="timer-bar-controls">
+                <button type="button" class="step-done-btn" style="height:36px; padding:0 12px;" data-action="add-timer-minute" data-id="${escapeHtml(t.id)}">+1m</button>
+                <button type="button" class="step-done-btn" style="height:36px; padding:0 13px;" data-action="toggle-timer-pause" data-id="${escapeHtml(t.id)}">${t.running ? 'Pause' : 'Resume'}</button>
+                <button type="button" class="step-done-btn" style="height:36px; padding:0 12px; color:var(--danger);" data-action="dismiss-timer" data-id="${escapeHtml(t.id)}">✕</button>
+              </div>
+            ` : ''}
           </div>
-          <div style="display:flex; gap:5px; flex-shrink:0;">
-            <button type="button" class="step-done-btn" style="height:36px; padding:0 10px;" data-action="add-timer-minute" data-id="${escapeHtml(t.id)}">+1m</button>
-            <button type="button" class="step-done-btn" style="height:36px; padding:0 11px;" data-action="toggle-timer-pause" data-id="${escapeHtml(t.id)}">${t.finished ? 'OK' : (t.running ? 'Pause' : 'Resume')}</button>
-            <button type="button" class="step-done-btn" style="height:36px; padding:0 10px;" data-action="dismiss-timer" data-id="${escapeHtml(t.id)}">✕</button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
       requestAnimationFrame(() => {
         const h = dock.offsetHeight || 0;
@@ -2089,23 +2214,34 @@
     }
 
     /********************************************************************
-     * GOOGLE SHEETS TWO-WAY SYNC ENGINE (Merge-by-ID & Atomic RAW Writes)
+     * APPS SCRIPT (@OnlyCurrentDoc) ROW-LEVEL DELTA SYNC ENGINE
      ********************************************************************/
     function getSyncConfig() {
       try {
         const raw = localStorage.getItem(STORAGE_KEYS.SYNC_CFG);
-        return raw ? JSON.parse(raw) : null;
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        // Automatically purge any legacy broad-scope OAuth credentials from localStorage
+        if (parsed && (parsed.rt || parsed.cs || parsed.cid) && !parsed.webhookUrl) {
+          localStorage.removeItem(STORAGE_KEYS.SYNC_CFG);
+          return null;
+        }
+        if (parsed && parsed.webhookUrl && parsed.key) {
+          return { webhookUrl: parsed.webhookUrl, key: parsed.key };
+        }
+        return null;
       } catch (e) {
         return null;
       }
     }
 
     function saveSyncConfig(cfg) {
-      localStorage.setItem(STORAGE_KEYS.SYNC_CFG, JSON.stringify(cfg));
-      cachedAccessToken = null;
-      cachedTokenExpiry = 0;
-      updateSyncUI('synced', 'Linked');
-      document.getElementById('unconnected-notice').style.display = 'none';
+      const cleanCfg = {
+        webhookUrl: String(cfg.webhookUrl || '').trim(),
+        key: String(cfg.key || '').trim()
+      };
+      localStorage.setItem(STORAGE_KEYS.SYNC_CFG, JSON.stringify(cleanCfg));
+      updateSyncUI('synced', 'Synced');
     }
 
     function decodeBase64UrlJson(str) {
@@ -2122,7 +2258,7 @@
         const tokenPart = hash.slice('#connect='.length).trim();
         try {
           const cfg = decodeBase64UrlJson(tokenPart);
-          if (cfg && (cfg.sheetId || cfg.webhookUrl)) {
+          if (cfg && cfg.webhookUrl && cfg.key) {
             saveSyncConfig(cfg);
             history.replaceState(null, '', window.location.pathname + window.location.search);
             return true;
@@ -2134,173 +2270,105 @@
       return false;
     }
 
-    async function getGoogleAccessToken(cfg) {
-      if (cachedAccessToken && Date.now() < cachedTokenExpiry) {
-        return cachedAccessToken;
-      }
-      const body = new URLSearchParams({
-        client_id: cfg.cid,
-        client_secret: cfg.cs,
-        refresh_token: cfg.rt,
-        grant_type: 'refresh_token'
-      });
-      const resp = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body.toString()
-      });
-      if (!resp.ok) throw new Error('Token refresh failed');
-      const data = await resp.json();
-      cachedAccessToken = data.access_token;
-      cachedTokenExpiry = Date.now() + ((data.expires_in || 3600) - 180) * 1000;
-      return cachedAccessToken;
-    }
-
     function updateSyncUI(status, text) {
       const pill = document.getElementById('sync-pill');
       const label = document.getElementById('sync-text');
+      if (!pill || !label) return;
       pill.className = 'sync-pill ' + status;
       label.textContent = text;
     }
 
-    function markTabDirty(tabName) {
-      if (!syncMeta.dirtyTabs.includes(tabName)) {
-        syncMeta.dirtyTabs.push(tabName);
-      }
+    function nextSyncSeq() {
+      syncMeta.seq = (Number(syncMeta.seq) || 0) + 1;
+      return syncMeta.seq;
+    }
+
+    function markRowDirty(tabName, id) {
+      if (!tabName || !id) return;
+      if (!syncMeta.dirtyRows[tabName]) syncMeta.dirtyRows[tabName] = {};
+      if (!syncMeta.deletedIds[tabName]) syncMeta.deletedIds[tabName] = {};
+      syncMeta.dirtyRows[tabName][id] = nextSyncSeq();
+      delete syncMeta.deletedIds[tabName][id];
       saveLocalState();
     }
 
     function recordDeletedId(tabName, id) {
-      if (!id) return;
+      if (!tabName || !id) return;
+      if (!syncMeta.dirtyRows[tabName]) syncMeta.dirtyRows[tabName] = {};
       if (!syncMeta.deletedIds[tabName]) syncMeta.deletedIds[tabName] = {};
-      syncMeta.deletedIds[tabName][id] = new Date().toISOString();
+      syncMeta.deletedIds[tabName][id] = nextSyncSeq();
+      delete syncMeta.dirtyRows[tabName][id];
+      saveLocalState();
     }
 
-    function parseRemoteTabs(valueRanges) {
-      // 1. Grocery List
-      const groceryRaw = (valueRanges[0] && valueRanges[0].values) || [];
-      const grocery = groceryRaw
-        .filter(r => r && r[2] && String(r[2]).trim() !== '')
-        .map((r, i) => ({
-          id: r[0] || `g-${i + 1}`,
-          section: r[1] || 'Dry Goods / Pantry',
-          item: r[2] || '',
-          checked: String(r[3]).toUpperCase() === 'TRUE',
-          sortOrder: Number(r[4]) || i + 1,
-          updatedAt: r[5] || ''
-        }));
+    function unrecordDeletedId(tabName, id) {
+      if (!tabName || !id) return;
+      if (syncMeta.deletedIds && syncMeta.deletedIds[tabName]) {
+        delete syncMeta.deletedIds[tabName][id];
+      }
+      markRowDirty(tabName, id);
+    }
 
-      // 2. Recipes
-      const recipeRaw = (valueRanges[1] && valueRanges[1].values) || [];
-      const recipes = recipeRaw
-        .filter(r => r && r[1] && String(r[1]).trim() !== '')
-        .map((r, i) => {
-          let ingredients = [];
-          let steps = [];
-          try { ingredients = JSON.parse(r[8] || '[]'); } catch (e) {}
-          try { steps = JSON.parse(r[9] || '[]'); } catch (e) {}
-          return {
-            id: r[0] || `r-${i + 1}`,
-            title: r[1] || 'Untitled Recipe',
-            active: String(r[2]).toUpperCase() === 'TRUE',
-            baseServings: Number(r[3]) || 4,
-            currentServings: Number(r[4]) || Number(r[3]) || 4,
-            prepTime: r[5] || '',
-            cookTime: r[6] || '',
-            notes: r[7] || '',
-            ingredients,
-            steps
-          };
-        });
-
-      // 3. Meal Plan
-      const mealRaw = (valueRanges[2] && valueRanges[2].values) || [];
-      const meals = mealRaw
-        .filter(r => r && r[2] && String(r[2]).trim() !== '')
-        .map((r, i) => ({
-          id: r[0] || `m-${i + 1}`,
-          day: r[1] || 'Planned',
-          name: r[2] || '',
-          time: r[3] || '',
-          difficulty: r[4] || '',
-          notes: r[5] || '',
-          recipeId: r[6] || ''
-        }));
-
-      // 4. Notes
-      const noteRaw = (valueRanges[3] && valueRanges[3].values) || [];
-      const notes = noteRaw
-        .filter(r => r && r[1] && String(r[1]).trim() !== '')
-        .map((r, i) => {
-          const type = (r[2] || 'text').toLowerCase();
-          let items = [];
-          if (type === 'checklist') {
-            try { items = JSON.parse(r[3] || '[]'); } catch (e) {
-              items = String(r[3] || '').split('\n').filter(Boolean).map((t, idx) => ({ id: `ci-${idx}`, text: t, checked: false }));
-            }
-          }
-          return {
-            id: r[0] || `n-${i + 1}`,
-            title: r[1] || 'Note',
-            type,
-            content: r[3] || '',
-            items,
-            pinned: String(r[4]).toUpperCase() === 'TRUE',
-            updatedAt: r[5] || ''
-          };
-        });
-
-      return {
-        grocery, groceryRawCount: groceryRaw.length,
-        recipes, recipeRawCount: recipeRaw.length,
-        meals,   mealRawCount: mealRaw.length,
-        notes,   noteRawCount: noteRaw.length
+    function markRecipePinDirty(recipeId, activeBool) {
+      if (!recipeId) return;
+      if (!syncMeta.pinnedRecipes) syncMeta.pinnedRecipes = {};
+      syncMeta.pinnedRecipes[recipeId] = {
+        value: Boolean(activeBool),
+        seq: nextSyncSeq()
       };
+      saveLocalState();
     }
 
-    function mergeByIdAndTimestamp(localList, remoteList, deletedMap) {
-      const mergedMap = new Map();
-      const dels = deletedMap || {};
-
-      for (const rem of remoteList) {
-        const delTs = dels[rem.id];
-        if (delTs && (!rem.updatedAt || rem.updatedAt <= delTs)) {
-          continue; // Deleted locally after remote row was created/updated
-        }
-        mergedMap.set(rem.id, rem);
+    function hasAnyPendingSync() {
+      for (const tab of ['grocery', 'meals', 'notes']) {
+        if (Object.keys(syncMeta.dirtyRows[tab] || {}).length > 0) return true;
+        if (Object.keys(syncMeta.deletedIds[tab] || {}).length > 0) return true;
       }
+      if (Object.keys(syncMeta.pinnedRecipes || {}).length > 0) return true;
+      return false;
+    }
 
-      for (const loc of localList) {
-        if (dels[loc.id]) continue;
-        const existing = mergedMap.get(loc.id);
-        if (!existing) {
-          mergedMap.set(loc.id, loc);
+    function getPendingSyncSummary() {
+      const parts = [];
+      for (const tab of ['grocery', 'meals', 'notes']) {
+        const n = Object.keys(syncMeta.dirtyRows[tab] || {}).length + Object.keys(syncMeta.deletedIds[tab] || {}).length;
+        if (n > 0) parts.push(`${tab} (${n})`);
+      }
+      const p = Object.keys(syncMeta.pinnedRecipes || {}).length;
+      if (p > 0) parts.push(`pins (${p})`);
+      return parts.join(', ');
+    }
+
+    function applyLocalPendingOverlay(remoteList, localList, dirtyMap, deletedMap) {
+      const dMap = dirtyMap || {};
+      const delMap = deletedMap || {};
+      const localById = new Map((localList || []).map(item => [item.id, item]));
+      const result = [];
+      const seen = new Set();
+
+      for (const rem of (remoteList || [])) {
+        if (delMap[rem.id]) continue;
+        if (dMap[rem.id] && localById.has(rem.id)) {
+          result.push(localById.get(rem.id));
         } else {
-          const locTime = loc.updatedAt || '';
-          const remTime = existing.updatedAt || '';
-          if (!remTime || locTime >= remTime) {
-            mergedMap.set(loc.id, loc);
-          }
+          result.push(rem);
+        }
+        seen.add(rem.id);
+      }
+
+      for (const [id] of Object.entries(dMap)) {
+        if (!seen.has(id) && !delMap[id] && localById.has(id)) {
+          result.push(localById.get(id));
         }
       }
 
-      return Array.from(mergedMap.values());
-    }
-
-    function padRowsWithBlanks(rows, width, targetCount) {
-      const padded = rows.slice();
-      const blankRow = new Array(width).fill('');
-      while (padded.length < targetCount) {
-        padded.push(blankRow);
-      }
-      return padded;
+      return result;
     }
 
     async function syncWithGoogleSheets(options = {}) {
       const cfg = getSyncConfig();
-      if (!cfg || !cfg.sheetId) {
-        document.getElementById('unconnected-notice').style.display = 'flex';
-        updateSyncUI('', 'Local');
+      if (!cfg || !cfg.webhookUrl || !cfg.key) {
+        updateSyncUI('unlinked', 'Link Sync');
         return;
       }
 
@@ -2310,159 +2378,121 @@
       }
 
       isSyncInFlight = true;
-      document.getElementById('unconnected-notice').style.display = 'none';
-      const hasDirty = syncMeta.dirtyTabs.length > 0;
-      if (!options.silent || hasDirty) {
-        updateSyncUI('syncing', hasDirty ? 'Saving…' : 'Syncing…');
+      const hadDirtyAtStart = hasAnyPendingSync();
+      if (!options.silent || hadDirtyAtStart) {
+        updateSyncUI('syncing', hadDirtyAtStart ? 'Saving…' : 'Syncing…');
       }
 
+      // Snapshot exact row sequence numbers being uploaded in this request
+      const sentDirty = { grocery: {}, meals: {}, notes: {} };
+      const sentDeletes = { grocery: {}, meals: {}, notes: {} };
+      const sentPins = {};
+      const changes = {};
+
+      for (const tab of ['grocery', 'meals', 'notes']) {
+        const upserts = [];
+        const deletes = [];
+        const localById = new Map((appState[tab] || []).map(x => [x.id, x]));
+
+        for (const [id, seq] of Object.entries(syncMeta.dirtyRows[tab] || {})) {
+          if (localById.has(id)) {
+            sentDirty[tab][id] = seq;
+            upserts.push(localById.get(id));
+          } else {
+            delete syncMeta.dirtyRows[tab][id];
+          }
+        }
+        for (const [id, seq] of Object.entries(syncMeta.deletedIds[tab] || {})) {
+          sentDeletes[tab][id] = seq;
+          deletes.push(id);
+        }
+        if (upserts.length > 0 || deletes.length > 0) {
+          changes[tab] = { upserts, deletes };
+        }
+      }
+
+      const pinEntries = Object.entries(syncMeta.pinnedRecipes || {});
+      if (pinEntries.length > 0) {
+        changes.recipes = { pinned: {} };
+        for (const [id, entry] of pinEntries) {
+          const val = (entry && typeof entry === 'object') ? Boolean(entry.value) : Boolean(entry);
+          const seq = (entry && typeof entry === 'object') ? (entry.seq || 0) : 0;
+          sentPins[id] = seq;
+          changes.recipes.pinned[id] = val;
+        }
+      }
+
+      let syncFailed = false;
       try {
-        const token = await getGoogleAccessToken(cfg);
-        const ranges = [
-          encodeURIComponent("'Grocery List'!A2:F500"),
-          encodeURIComponent("'Recipes'!A2:J200"),
-          encodeURIComponent("'Meal Plan'!A2:G100"),
-          encodeURIComponent("'Notes'!A2:F200")
-        ].map(r => `ranges=${r}`).join('&');
-
-        const readUrl = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchGet?${ranges}`;
-        const readResp = await fetch(readUrl, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        // Use text/plain simple request so Google Apps Script executes with zero CORS preflight
+        const resp = await fetch(cfg.webhookUrl, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ key: cfg.key, changes })
         });
-        if (!readResp.ok) throw new Error(`Sheets read HTTP ${readResp.status}`);
-        const readData = await readResp.json();
-        const remote = parseRemoteTabs(readData.valueRanges || []);
-
-        const dirtySnapshot = [...syncMeta.dirtyTabs];
-        const writePayload = [];
-
-        // 1. Grocery List: merge if dirty, otherwise accept remote
-        if (dirtySnapshot.includes('grocery')) {
-          appState.grocery = mergeByIdAndTimestamp(appState.grocery, remote.grocery, syncMeta.deletedIds.grocery);
-          const rows = appState.grocery.map((g, i) => [
-            g.id || `g-${i + 1}`,
-            g.section || 'Dry Goods / Pantry',
-            g.item || '',
-            g.checked ? 'TRUE' : 'FALSE',
-            String(g.sortOrder || i + 1),
-            g.updatedAt || new Date().toISOString()
-          ]);
-          const targetLen = Math.max(remote.groceryRawCount, rows.length) + 15;
-          writePayload.push({
-            range: "'Grocery List'!A2",
-            values: padRowsWithBlanks(rows, 6, targetLen)
-          });
-        } else {
-          appState.grocery = remote.grocery;
-          syncMeta.deletedIds.grocery = {};
+        if (!resp.ok) throw new Error(`Sync HTTP ${resp.status}`);
+        const data = await resp.json();
+        if (!data || data.ok !== true) {
+          throw new Error((data && data.error) || 'Invalid sync response');
         }
 
-        // 2. Recipes: preserve remote recipes if non-empty; apply any local Pin toggles
-        if (remote.recipes.length > 0) {
-          if (dirtySnapshot.includes('recipes')) {
-            const pinnedMap = syncMeta.pinnedRecipes || {};
-            appState.recipes = remote.recipes.map(r => ({
-              ...r,
-              active: Object.prototype.hasOwnProperty.call(pinnedMap, r.id) ? Boolean(pinnedMap[r.id]) : r.active
-            }));
-            const rows = appState.recipes.map((r, i) => [
-              r.id || `r-${i + 1}`,
-              r.title || '',
-              r.active ? 'TRUE' : 'FALSE',
-              String(r.baseServings || 4),
-              String(r.currentServings || r.baseServings || 4),
-              r.prepTime || '',
-              r.cookTime || '',
-              r.notes || '',
-              JSON.stringify(r.ingredients || []),
-              JSON.stringify(r.steps || [])
-            ]);
-            const targetLen = Math.max(remote.recipeRawCount, rows.length) + 5;
-            writePayload.push({
-              range: "'Recipes'!A2",
-              values: padRowsWithBlanks(rows, 10, targetLen)
-            });
-          } else {
-            appState.recipes = remote.recipes;
-            syncMeta.pinnedRecipes = {};
+        // Clear ONLY row flags that were NOT modified again while the HTTP request was in flight
+        for (const tab of ['grocery', 'meals', 'notes']) {
+          for (const [id, sentSeq] of Object.entries(sentDirty[tab])) {
+            if ((syncMeta.dirtyRows[tab][id] || 0) <= sentSeq) {
+              delete syncMeta.dirtyRows[tab][id];
+            }
+          }
+          for (const [id, sentSeq] of Object.entries(sentDeletes[tab])) {
+            if ((syncMeta.deletedIds[tab][id] || 0) <= sentSeq) {
+              delete syncMeta.deletedIds[tab][id];
+            }
+          }
+        }
+        for (const [id, sentSeq] of Object.entries(sentPins)) {
+          const cur = syncMeta.pinnedRecipes[id];
+          const curSeq = (cur && typeof cur === 'object') ? (cur.seq || 0) : 0;
+          if (curSeq <= sentSeq) {
+            delete syncMeta.pinnedRecipes[id];
           }
         }
 
-        // 3. Meal Plan: merge if dirty, otherwise accept remote
-        if (dirtySnapshot.includes('meals')) {
-          appState.meals = mergeByIdAndTimestamp(appState.meals, remote.meals, syncMeta.deletedIds.meals);
-          const rows = appState.meals.map((m, i) => [
-            m.id || `m-${i + 1}`,
-            m.day || '',
-            m.name || '',
-            m.time || '',
-            m.difficulty || '',
-            m.notes || '',
-            m.recipeId || ''
-          ]);
-          const targetLen = Math.max(remote.mealRawCount, rows.length) + 10;
-          writePayload.push({
-            range: "'Meal Plan'!A2",
-            values: padRowsWithBlanks(rows, 7, targetLen)
+        // Reconcile server state while preserving any mid-upload taps made on the phone
+        if (Array.isArray(data.grocery)) {
+          appState.grocery = applyLocalPendingOverlay(data.grocery, appState.grocery, syncMeta.dirtyRows.grocery, syncMeta.deletedIds.grocery);
+        }
+        if (Array.isArray(data.recipes) && data.recipes.length > 0) {
+          appState.recipes = data.recipes.map(r => {
+            if (Object.prototype.hasOwnProperty.call(syncMeta.pinnedRecipes, r.id)) {
+              const p = syncMeta.pinnedRecipes[r.id];
+              return Object.assign({}, r, { active: (p && typeof p === 'object') ? Boolean(p.value) : Boolean(p) });
+            }
+            return r;
           });
-        } else {
-          appState.meals = remote.meals;
-          syncMeta.deletedIds.meals = {};
+        }
+        if (Array.isArray(data.meals)) {
+          appState.meals = applyLocalPendingOverlay(data.meals, appState.meals, syncMeta.dirtyRows.meals, syncMeta.deletedIds.meals);
+        }
+        if (Array.isArray(data.notes)) {
+          appState.notes = applyLocalPendingOverlay(data.notes, appState.notes, syncMeta.dirtyRows.notes, syncMeta.deletedIds.notes);
         }
 
-        // 4. Notes: merge if dirty, otherwise accept remote
-        if (dirtySnapshot.includes('notes')) {
-          appState.notes = mergeByIdAndTimestamp(appState.notes, remote.notes, syncMeta.deletedIds.notes);
-          const rows = appState.notes.map((n, i) => [
-            n.id || `n-${i + 1}`,
-            n.title || '',
-            n.type || 'text',
-            n.type === 'checklist' ? JSON.stringify(n.items || []) : (n.content || ''),
-            n.pinned ? 'TRUE' : 'FALSE',
-            n.updatedAt || new Date().toISOString()
-          ]);
-          const targetLen = Math.max(remote.noteRawCount, rows.length) + 10;
-          writePayload.push({
-            range: "'Notes'!A2",
-            values: padRowsWithBlanks(rows, 6, targetLen)
-          });
-        } else {
-          appState.notes = remote.notes;
-          syncMeta.deletedIds.notes = {};
-        }
-
-        // Atomic single-request write for dirty tabs (RAW mode + blank row padding, never batchClear)
-        if (writePayload.length > 0) {
-          const writeResp = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}/values:batchUpdate`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              valueInputOption: 'RAW',
-              data: writePayload
-            })
-          });
-          if (!writeResp.ok) throw new Error(`Sheets write HTTP ${writeResp.status}`);
-
-          syncMeta.dirtyTabs = syncMeta.dirtyTabs.filter(t => !dirtySnapshot.includes(t));
-          if (dirtySnapshot.includes('grocery')) syncMeta.deletedIds.grocery = {};
-          if (dirtySnapshot.includes('recipes')) syncMeta.pinnedRecipes = {};
-          if (dirtySnapshot.includes('meals'))   syncMeta.deletedIds.meals = {};
-          if (dirtySnapshot.includes('notes'))   syncMeta.deletedIds.notes = {};
-        }
-
-        appState.lastSyncedAt = new Date().toISOString();
+        appState.lastSyncedAt = data.syncedAt || new Date().toISOString();
         saveLocalState();
         renderAll();
-        updateSyncUI('synced', 'Synced');
+        if (hasAnyPendingSync()) {
+          updateSyncUI('syncing', 'Saving…');
+        } else {
+          updateSyncUI('synced', 'Synced');
+        }
       } catch (err) {
+        syncFailed = true;
         console.error('Sync error:', err);
-        updateSyncUI('error', syncMeta.dirtyTabs.length > 0 ? 'Saved Locally' : 'Offline');
+        updateSyncUI('error', hasAnyPendingSync() ? 'Saved Locally' : 'Offline');
       } finally {
         isSyncInFlight = false;
-        if (resyncQueued) {
+        if (resyncQueued || (!syncFailed && hasAnyPendingSync())) {
           resyncQueued = false;
           schedulePushToGoogleSheets();
         }
@@ -2473,16 +2503,18 @@
       return syncWithGoogleSheets(options);
     }
 
-    function schedulePushToGoogleSheets(tabName) {
-      if (tabName) markTabDirty(tabName);
+    function schedulePushToGoogleSheets() {
       saveLocalState();
       const cfg = getSyncConfig();
-      if (!cfg || !cfg.sheetId) return;
+      if (!cfg || !cfg.webhookUrl) {
+        updateSyncUI('unlinked', 'Link Sync');
+        return;
+      }
       updateSyncUI('syncing', 'Saving…');
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
       syncDebounceTimer = setTimeout(() => {
         syncWithGoogleSheets();
-      }, 650);
+      }, 500);
     }
 
     /********************************************************************
@@ -2498,17 +2530,21 @@
         if (rawPrefs) {
           uiPrefs = Object.assign(uiPrefs, JSON.parse(rawPrefs));
           if (!uiPrefs.cookingProgress) uiPrefs.cookingProgress = {};
+          if (!uiPrefs.learnedAisles) uiPrefs.learnedAisles = {};
         }
       } catch (e) {}
       try {
         const rawSyncMeta = localStorage.getItem(STORAGE_KEYS.SYNC_META);
         if (rawSyncMeta) {
           const parsedMeta = JSON.parse(rawSyncMeta);
-          syncMeta.dirtyTabs = Array.isArray(parsedMeta.dirtyTabs) ? parsedMeta.dirtyTabs : [];
+          syncMeta.seq = Number(parsedMeta.seq) || 0;
+          syncMeta.dirtyRows = Object.assign({ grocery: {}, meals: {}, notes: {} }, parsedMeta.dirtyRows || {});
           syncMeta.deletedIds = Object.assign({ grocery: {}, meals: {}, notes: {} }, parsedMeta.deletedIds || {});
           syncMeta.pinnedRecipes = parsedMeta.pinnedRecipes || {};
         }
       } catch (e) {}
+      // Ensure any legacy OAuth config is purged immediately on boot
+      getSyncConfig();
     }
 
     function saveLocalState() {
@@ -2525,47 +2561,78 @@
     }
 
     /* 1. RENDER GROCERY VIEW + SMART AISLE AUTO-DETECTION */
-    let manualSectionSelected = false;
-
     const AISLE_KEYWORDS = [
       {
         section: 'Produce',
-        words: ['avocado', 'onion', 'garlic', 'ginger', 'potato', 'sweet potato', 'tomato', 'cilantro', 'parsley', 'basil', 'mint', 'lemon', 'lime', 'apple', 'banana', 'berry', 'berries', 'spinach', 'kale', 'lettuce', 'salad', 'pepper', 'bell pepper', 'jalapeno', 'serrano', 'poblano', 'carrot', 'celery', 'cucumber', 'zucchini', 'squash', 'mushroom', 'broccoli', 'cauliflower', 'cabbage', 'scallion', 'green onion', 'shallot', 'fruit', 'produce', 'grape', 'orange', 'peach', 'pear', 'mango', 'pineapple', 'asparagus', 'corn', 'beet', 'radish', 'herbs', 'chives', 'dill', 'rosemary', 'thyme']
+        words: ['avocado', 'onion', 'red onion', 'yellow onion', 'white onion', 'garlic', 'ginger', 'potato', 'sweet potato', 'tomato', 'roma tomato', 'cherry tomato', 'cilantro', 'parsley', 'basil', 'mint', 'lemon', 'lime', 'apple', 'banana', 'berry', 'blueberry', 'strawberry', 'raspberry', 'blackberry', 'spinach', 'kale', 'lettuce', 'arugula', 'romaine', 'salad mix', 'spring mix', 'pepper', 'bell pepper', 'jalapeno', 'serrano', 'poblano', 'habanero', 'carrot', 'celery', 'cucumber', 'zucchini', 'squash', 'butternut squash', 'mushroom', 'broccoli', 'cauliflower', 'cabbage', 'scallion', 'green onion', 'green bean', 'snap pea', 'snow pea', 'shallot', 'leek', 'fennel', 'grape', 'orange', 'peach', 'pear', 'mango', 'pineapple', 'asparagus', 'corn', 'sweet corn', 'beet', 'radish', 'chive', 'dill', 'rosemary', 'thyme', 'sage']
       },
       {
         section: 'Dairy & Eggs',
-        words: ['milk', 'oat milk', 'almond milk', 'soy milk', 'cream', 'heavy cream', 'half and half', 'half & half', 'butter', 'cheese', 'cheddar', 'mozzarella', 'parmesan', 'feta', 'goat cheese', 'ricotta', 'cream cheese', 'paneer', 'yogurt', 'greek yogurt', 'sour cream', 'egg', 'eggs', 'creamer', 'whipping cream']
+        words: ['milk', 'whole milk', 'oat milk', 'almond milk', 'soy milk', 'cream', 'heavy cream', 'whipping cream', 'half and half', 'half & half', 'butter', 'unsalted butter', 'salted butter', 'cheese', 'cheddar', 'mozzarella', 'parmesan', 'feta', 'goat cheese', 'ricotta', 'cream cheese', 'paneer', 'halloumi', 'queso', 'yogurt', 'greek yogurt', 'sour cream', 'egg', 'creamer', 'kefir', 'ghee']
       },
       {
         section: 'Frozen & Refrigerated',
-        words: ['frozen', 'ice cream', 'tofu', 'tempeh', 'seitan', 'chick’n', 'chickn', 'beyond', 'impossible', 'crumbles', 'ravioli', 'tortellini', 'dumpling', 'waffle', 'fries', 'tots', 'peas', 'popsicle', 'sorbet', 'hummus', 'guacamole', 'salsa', 'kimchi', 'kraut', 'refrigerated']
+        words: ['frozen', 'ice cream', 'gelato', 'sorbet', 'popsicle', 'tofu', 'tempeh', 'seitan', 'beyond', 'impossible', 'veggie burger', 'ravioli', 'tortellini', 'gnocchi', 'dumpling', 'potsticker', 'waffle', 'french fries', 'tater tot', 'frozen pea', 'frozen corn', 'frozen fruit', 'frozen pizza', 'puff pastry', 'pie crust', 'hummus', 'guacamole', 'fresh salsa', 'kimchi', 'sauerkraut']
       },
       {
         section: 'Bakery & Bread',
-        words: ['bread', 'loaf', 'sourdough', 'bagel', 'bun', 'buns', 'roll', 'rolls', 'tortilla', 'tortillas', 'pita', 'naan', 'baguette', 'croissant', 'muffin', 'english muffin', 'bakery', 'ciabatta', 'flatbread']
+        words: ['bread', 'loaf', 'sourdough', 'bagel', 'bun', 'hamburger bun', 'roll', 'dinner roll', 'tortilla', 'flour tortilla', 'corn tortilla', 'pita', 'naan', 'garlic naan', 'baguette', 'croissant', 'muffin', 'english muffin', 'bakery', 'ciabatta', 'flatbread', 'focaccia', 'brioche']
       },
       {
         section: 'Household / Other',
-        words: ['paper towel', 'toilet paper', 'tissue', 'soap', 'dish soap', 'detergent', 'laundry', 'sponge', 'trash bag', 'garbage bag', 'foil', 'aluminum foil', 'plastic wrap', 'parchment', 'ziploc', 'baggie', 'toothpaste', 'shampoo', 'conditioner', 'deodorant', 'lotion', 'cleaner', 'bleach', 'wipe', 'wipes', 'battery', 'batteries', 'light bulb', 'napkin', 'cat', 'dog', 'pet', 'pharmacy', 'vitamin', 'ibuprofen', 'tylenol']
+        words: ['paper towel', 'toilet paper', 'tissue', 'facial tissue', 'soap', 'hand soap', 'dish soap', 'dishwasher', 'detergent', 'laundry', 'sponge', 'trash bag', 'garbage bag', 'aluminum foil', 'tin foil', 'plastic wrap', 'parchment paper', 'parchment', 'wax paper', 'ziploc', 'freezer bag', 'toothpaste', 'floss', 'shampoo', 'conditioner', 'body wash', 'deodorant', 'lotion', 'sunscreen', 'cleaner', 'all purpose cleaner', 'bleach', 'disinfectant', 'wipe', 'battery', 'light bulb', 'napkin', 'cat food', 'cat litter', 'dog food', 'vitamin', 'ibuprofen', 'acetaminophen', 'bandaid']
       },
       {
         section: 'Dry Goods / Pantry',
-        words: ['rice', 'pasta', 'spaghetti', 'noodle', 'quinoa', 'lentil', 'beans', 'black beans', 'kidney beans', 'pinto beans', 'cannellini', 'broth', 'stock', 'canned', 'diced tomatoes', 'crushed tomatoes', 'tomato paste', 'tomato sauce', 'coconut milk', 'oil', 'olive oil', 'vegetable oil', 'sesame oil', 'vinegar', 'soy sauce', 'tamari', 'maple syrup', 'honey', 'sugar', 'brown sugar', 'flour', 'baking', 'vanilla', 'chocolate', 'cocoa', 'chips', 'crackers', 'pretzel', 'popcorn', 'nuts', 'cashew', 'almond', 'walnut', 'pecan', 'peanut', 'peanut butter', 'almond butter', 'jam', 'jelly', 'cereal', 'oats', 'oatmeal', 'granola', 'raisin', 'dried', 'spice', 'cumin', 'paprika', 'coriander', 'turmeric', 'cinnamon', 'nutmeg', 'chili powder', 'cayenne', 'oregano', 'salt', 'pepper', 'coffee', 'tea', 'enchilada sauce', 'salsa']
+        words: ['rice', 'basmati rice', 'jasmine rice', 'brown rice', 'arborio rice', 'pasta', 'spaghetti', 'penne', 'rigatoni', 'macaroni', 'orzo', 'noodle', 'ramen', 'rice noodle', 'quinoa', 'couscous', 'farro', 'barley', 'lentil', 'red lentil', 'beans', 'black bean', 'kidney bean', 'pinto bean', 'cannellini bean', 'garbanzo', 'refried bean', 'broth', 'vegetable broth', 'stock', 'bouillon', 'canned', 'diced tomato', 'crushed tomato', 'whole peeled tomato', 'tomato paste', 'tomato sauce', 'marinara', 'pasta sauce', 'enchilada sauce', 'coconut milk', 'coconut cream', 'oil', 'olive oil', 'vegetable oil', 'canola oil', 'avocado oil', 'sesame oil', 'coconut oil', 'vinegar', 'apple cider vinegar', 'balsamic vinegar', 'rice vinegar', 'red wine vinegar', 'white vinegar', 'soy sauce', 'tamari', 'hot sauce', 'sriracha', 'worcestershire', 'mustard', 'dijon mustard', 'ketchup', 'mayo', 'mayonnaise', 'salad dressing', 'ranch dressing', 'vinaigrette', 'bbq sauce', 'salsa', 'maple syrup', 'honey', 'agave', 'sugar', 'brown sugar', 'powdered sugar', 'flour', 'all purpose flour', 'bread flour', 'cornstarch', 'cornmeal', 'baking powder', 'baking soda', 'yeast', 'vanilla', 'vanilla extract', 'chocolate', 'chocolate chip', 'cocoa', 'cocoa powder', 'chip', 'tortilla chip', 'potato chip', 'cracker', 'pretzel', 'popcorn', 'nut', 'cashew', 'almond', 'walnut', 'pecan', 'pistachio', 'pine nut', 'peanut', 'peanut butter', 'almond butter', 'tahini', 'jam', 'jelly', 'preserves', 'cereal', 'oat', 'rolled oat', 'oatmeal', 'granola', 'raisin', 'golden raisin', 'dried cranberry', 'dried fruit', 'panko', 'breadcrumb', 'spice', 'black pepper', 'peppercorn', 'white pepper', 'red pepper flake', 'pepper flake', 'crushed red pepper', 'garlic powder', 'garlic salt', 'onion powder', 'cumin', 'ground cumin', 'paprika', 'smoked paprika', 'coriander', 'turmeric', 'garam masala', 'curry powder', 'chili powder', 'cayenne', 'oregano', 'dried oregano', 'dried basil', 'dried thyme', 'bay leaf', 'bay leaves', 'cinnamon', 'nutmeg', 'cardamom', 'clove', 'salt', 'kosher salt', 'sea salt', 'coffee', 'espresso', 'tea']
       }
     ];
+
+    function normalizeGroceryItemKey(rawText) {
+      return String(rawText || '')
+        .toLowerCase()
+        .replace(/^\s*[\d¼½¾⅓⅔⅛⅜⅝⅞/.\-–]+\s*(?:lbs?|oz|g|kg|cups?|tbsp|tsp|cans?|bags?|packs?|packages?|boxes?|bunches?|heads?|blocks?|bottles?|jars?|pints?|quarts?|gallons?|cloves?)?\b\s*(?:of\b\s*)?/i, '')
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function buildWholePhraseRegex(phrase) {
+      const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (escaped.endsWith('y') && escaped.length > 2 && !/[aeiou]y$/i.test(escaped)) {
+        return new RegExp(`\\b${escaped.slice(0, -1)}(?:y|ies)\\b`, 'i');
+      }
+      return new RegExp(`\\b${escaped}(?:s|es)?\\b`, 'i');
+    }
 
     function inferGrocerySection(rawText) {
       const lower = String(rawText || '').toLowerCase();
       if (!lower.trim()) return null;
-      // Check frozen first if word "frozen" is explicitly present
-      if (lower.includes('frozen')) return 'Frozen & Refrigerated';
+
+      // 1. Check user-learned aisle overrides first
+      const normKey = normalizeGroceryItemKey(rawText);
+      if (normKey && uiPrefs.learnedAisles && uiPrefs.learnedAisles[normKey]) {
+        return uiPrefs.learnedAisles[normKey];
+      }
+
+      // 2. Explicit modifiers override ingredient family
+      if (/\bfrozen\b/i.test(lower)) return 'Frozen & Refrigerated';
+      if (/\b(?:canned|dried)\b/i.test(lower)) return 'Dry Goods / Pantry';
+
+      // 3. Longest whole-word phrase match wins ("tomato paste" > "tomato", "peanut butter" > "butter", "corn" != "cornstarch")
+      let bestSection = null;
+      let bestScore = 0;
+
       for (const group of AISLE_KEYWORDS) {
         for (const w of group.words) {
-          const regex = new RegExp(`\\b${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
-          if (regex.test(lower)) return group.section;
+          if (w.length <= bestScore) continue;
+          if (buildWholePhraseRegex(w).test(lower)) {
+            bestScore = w.length;
+            bestSection = group.section;
+          }
         }
       }
-      return null;
+      return bestSection;
     }
 
     function renderGroceryView() {
@@ -2647,8 +2714,9 @@
       if (!item) return;
       item.checked = !item.checked;
       item.updatedAt = new Date().toISOString();
+      markRowDirty('grocery', id);
       renderGroceryView();
-      schedulePushToGoogleSheets('grocery');
+      schedulePushToGoogleSheets();
     }
 
     /* 2. RENDER COOK / RECIPE GALLERY & COUNTER VIEW (Local Cooking Progress + Focus Mode) */
@@ -2704,15 +2772,18 @@
       uiPrefs.cookSubView = 'gallery';
       saveLocalState();
       renderCookView();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo(0, tabScrollPositions.cook || 0);
     }
 
     function openRecipeDetail(recipeId) {
+      if (uiPrefs.activeView === 'cook' && uiPrefs.cookSubView === 'gallery') {
+        tabScrollPositions.cook = window.scrollY || 0;
+      }
       uiPrefs.selectedRecipeId = recipeId;
       uiPrefs.cookSubView = 'detail';
       saveLocalState();
       renderCookView();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo(0, 0);
     }
 
     function toggleCookFocusMode() {
@@ -2730,10 +2801,9 @@
       const r = appState.recipes.find(x => x.id === recipeId);
       if (!r) return;
       r.active = !r.active;
-      if (!syncMeta.pinnedRecipes) syncMeta.pinnedRecipes = {};
-      syncMeta.pinnedRecipes[recipeId] = r.active;
+      markRecipePinDirty(recipeId, r.active);
       renderCookView();
-      schedulePushToGoogleSheets('recipes');
+      schedulePushToGoogleSheets();
     }
 
     function renderCookView() {
@@ -2818,14 +2888,14 @@
       }).join('');
     }
 
-    function renderStepTimerFooterButtons(step, stepIdx) {
+    function renderFocusTimerButtons(step, stepIdx) {
       const timers = extractStepTimers(step, stepIdx);
       if (timers.length === 0) return '';
       return `
         <div class="step-timer-footer">
           ${timers.map(t => `
             <button type="button" class="step-timer-big-btn" data-action="start-timer" data-seconds="${t.seconds}" data-label="${escapeHtml(t.fullLabel)}">
-              ⏱ Start Timer: ${escapeHtml(t.fullLabel)}
+              ⏱ Start ${escapeHtml(t.shortDuration)}
             </button>
           `).join('')}
         </div>
@@ -2859,16 +2929,11 @@
       const topBarHtml = `
         <div class="cook-top-nav">
           <button type="button" class="back-gallery-btn" data-action="open-recipe-gallery">
-            ← Recipes (${recipes.length})
+            ← Recipes
           </button>
-          <div style="display:flex; gap:6px;">
-            <button type="button" class="pin-star-btn ${isFocus ? 'active' : ''}" data-action="toggle-cook-focus-mode">
-              ${isFocus ? '📋 Full View' : '🔍 Focus Step'}
-            </button>
-            <button type="button" class="pin-star-btn ${recipe.active ? 'active' : ''}" data-action="toggle-pin-recipe" data-recipe-id="${escapeHtml(recipe.id)}">
-              ${recipe.active ? '★ Pinned' : '☆ Pin'}
-            </button>
-          </div>
+          <button type="button" class="pin-star-btn ${isFocus ? 'active' : ''}" data-action="toggle-cook-focus-mode">
+            ${isFocus ? '📋 Full View' : '🔍 Focus Step'}
+          </button>
         </div>
       `;
 
@@ -2881,37 +2946,28 @@
 
         content.innerHTML = `
           ${topBarHtml}
-          <div style="margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; gap:8px;">
-            <h2 style="margin:0; font-size:1.15rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(cleanTitle)}</h2>
-            <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-              <button type="button" class="step-btn" style="width:36px; height:36px;" data-action="change-recipe-servings" data-recipe-id="${escapeHtml(recipe.id)}" data-delta="-1">−</button>
-              <span style="font-size:0.86rem; font-weight:800; color:var(--accent);">${currS} srv</span>
-              <button type="button" class="step-btn" style="width:36px; height:36px;" data-action="change-recipe-servings" data-recipe-id="${escapeHtml(recipe.id)}" data-delta="1">+</button>
-            </div>
-          </div>
+          <h2 style="margin:0 0 10px 0; font-size:1.18rem; font-weight:800; line-height:1.3;">${escapeHtml(cleanTitle)}</h2>
 
           <div class="focus-mode-card">
             <div class="step-card-header">
-              <span class="step-badge" style="background:var(--accent); color:#062117; font-size:0.88rem; padding:6px 13px;">
+              <span class="step-badge" style="background:var(--accent); color:#062117; font-size:0.86rem; padding:5px 12px;">
                 Step ${activeStepIdx + 1} of ${steps.length}
               </span>
-              <span style="font-size:0.84rem; font-weight:700; color:${isDone ? 'var(--accent)' : 'var(--text-muted)'};">
-                ${isDone ? '✓ Completed' : 'In Progress'}
-              </span>
+              ${isDone ? `<span style="font-size:0.84rem; font-weight:700; color:var(--accent);">✓ Done</span>` : ''}
             </div>
 
             <div class="focus-step-body">
-              ${renderStepTextWithScalingAndTimers(currentStepObj, baseS, currS, activeStepIdx)}
+              ${renderStepTextWithScalingAndTimers(currentStepObj, baseS, currS, activeStepIdx, { includeTimerChips: false })}
             </div>
 
-            ${renderStepTimerFooterButtons(currentStepObj, activeStepIdx)}
+            ${renderFocusTimerButtons(currentStepObj, activeStepIdx)}
 
             <div class="focus-nav-bar">
               <button type="button" class="btn-secondary focus-nav-btn" ${activeStepIdx === 0 ? 'disabled style="opacity:0.4;"' : ''} data-action="focus-recipe-step" data-recipe-id="${escapeHtml(recipe.id)}" data-step-idx="${Math.max(0, activeStepIdx - 1)}">
                 ← Prev
               </button>
               <button type="button" class="btn-primary focus-nav-btn" style="flex:1.6;" data-action="focus-step-done-next" data-recipe-id="${escapeHtml(recipe.id)}" data-step-idx="${activeStepIdx}">
-                ${activeStepIdx + 1 < steps.length ? '✓ Done · Next Step →' : '🎉 Finish Recipe'}
+                ${activeStepIdx + 1 < steps.length ? '✓ Done · Next →' : '🎉 Finish Recipe'}
               </button>
             </div>
           </div>
@@ -2920,9 +2976,9 @@
             <div class="section-header" data-action="toggle-focus-ingredients">
               <div class="section-title-wrap">
                 <span>${uiPrefs.focusIngredientsOpen ? '▾' : '▸'}</span>
-                <span>Prep &amp; Ingredients Checklist</span>
+                <span>Prep &amp; Ingredients</span>
               </div>
-              <span class="section-count">${checkedIngCount}/${allIngCount} checked</span>
+              <span class="section-count">${checkedIngCount}/${allIngCount}</span>
             </div>
             ${uiPrefs.focusIngredientsOpen ? `
               <div class="section-items">
@@ -2941,17 +2997,17 @@
         <div class="recipe-hero">
           <div style="margin-bottom:6px;"><span class="category-tag">${escapeHtml(badge)}</span></div>
           <h2 class="recipe-title">${escapeHtml(cleanTitle)}</h2>
-          <div class="recipe-meta-chips">
-            ${recipe.prepTime ? `<span class="meta-chip">🔪 ${escapeHtml(recipe.prepTime)}</span>` : ''}
-            ${recipe.cookTime ? `<span class="meta-chip">🔥 ${escapeHtml(recipe.cookTime)}</span>` : ''}
-            <span class="meta-chip">🌱 Ovo-Lacto Veg</span>
-          </div>
+          ${(recipe.prepTime || recipe.cookTime) ? `
+            <div class="recipe-meta-chips">
+              ${recipe.prepTime ? `<span class="meta-chip">🔪 ${escapeHtml(recipe.prepTime)}</span>` : ''}
+              ${recipe.cookTime ? `<span class="meta-chip">🔥 ${escapeHtml(recipe.cookTime)}</span>` : ''}
+            </div>
+          ` : ''}
           ${recipe.notes ? `<div class="recipe-notes-banner">${escapeHtml(recipe.notes)}</div>` : ''}
 
           <div class="scaler-bar">
             <div class="scaler-label">
-              <span>Servings ${isScaled ? `<span style="color:var(--accent); font-size:0.78rem;">(Scaled from ${baseS})</span>` : ''}</span>
-              <span class="scaler-sub">Auto-scales ingredients &amp; step amounts</span>
+              <span>Servings ${isScaled ? `<span style="color:var(--accent); font-size:0.78rem;">(from ${baseS})</span>` : ''}</span>
             </div>
             <div class="scaler-controls">
               ${isScaled ? `<button type="button" class="step-done-btn" data-action="set-recipe-servings" data-recipe-id="${escapeHtml(recipe.id)}" data-servings="${baseS}">Reset</button>` : ''}
@@ -2964,8 +3020,8 @@
 
         ${prepItems.length > 0 ? `
           <div class="cook-section-title">
-            <span>1. Mise en Place (Prep First)</span>
-            <span style="font-size:0.76rem; color:var(--text-muted);">${prepItems.filter(i => prog.checkedIngredients[i.id]).length}/${prepItems.length} done</span>
+            <span>Mise en Place</span>
+            <span style="font-size:0.76rem; color:var(--text-muted);">${prepItems.filter(i => prog.checkedIngredients[i.id]).length}/${prepItems.length}</span>
           </div>
           <div class="section-block">
             ${prepItems.map(item => renderRecipeIngredientRow(recipe, item, baseS, currS, prog)).join('')}
@@ -2974,8 +3030,8 @@
 
         ${ingItems.length > 0 ? `
           <div class="cook-section-title">
-            <span>${prepItems.length > 0 ? '2. Ingredients' : '1. Ingredients'}</span>
-            <button type="button" class="step-done-btn" data-action="reset-recipe-checks" data-recipe-id="${escapeHtml(recipe.id)}">Reset Checks</button>
+            <span>Ingredients</span>
+            <button type="button" class="step-done-btn" style="height:34px; padding:0 11px; font-size:0.76rem;" data-action="reset-recipe-checks" data-recipe-id="${escapeHtml(recipe.id)}">Reset Checks</button>
           </div>
           <div class="section-block">
             ${ingItems.map(item => renderRecipeIngredientRow(recipe, item, baseS, currS, prog)).join('')}
@@ -2983,8 +3039,8 @@
         ` : ''}
 
         <div class="cook-section-title">
-          <span>${prepItems.length > 0 && ingItems.length > 0 ? '3. Cooking Steps (Tap step to focus)' : '2. Cooking Steps (Tap step to focus)'}</span>
-          ${prepItems.length > 0 && ingItems.length === 0 ? `<button type="button" class="step-done-btn" data-action="reset-recipe-checks" data-recipe-id="${escapeHtml(recipe.id)}">Reset Checks</button>` : ''}
+          <span>Steps</span>
+          ${prepItems.length > 0 && ingItems.length === 0 ? `<button type="button" class="step-done-btn" style="height:34px; padding:0 11px; font-size:0.76rem;" data-action="reset-recipe-checks" data-recipe-id="${escapeHtml(recipe.id)}">Reset Checks</button>` : ''}
         </div>
         <div>
           ${steps.map((step, idx) => {
@@ -2993,15 +3049,14 @@
             return `
               <div class="step-card ${isActive ? 'active-step' : ''} ${isDone ? 'completed-step' : ''}" id="recipe-step-card-${idx}" data-action="focus-recipe-step" data-recipe-id="${escapeHtml(recipe.id)}" data-step-idx="${idx}">
                 <div class="step-card-header">
-                  <span class="step-badge">${isActive ? '▶ Current Step ' + (idx + 1) : 'Step ' + (idx + 1)}</span>
-                  <button type="button" class="step-done-btn" data-action="toggle-recipe-step-done" data-recipe-id="${escapeHtml(recipe.id)}" data-step-idx="${idx}">
-                    ${isDone ? '✓ Completed' : 'Mark Done'}
+                  <span class="step-badge">Step ${idx + 1}</span>
+                  <button type="button" class="step-check-btn ${isDone ? 'checked' : ''}" data-action="toggle-recipe-step-done" data-recipe-id="${escapeHtml(recipe.id)}" data-step-idx="${idx}" aria-label="Mark step ${idx + 1} completed">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
                   </button>
                 </div>
                 <div class="step-body">
-                  ${renderStepTextWithScalingAndTimers(step, baseS, currS, idx)}
+                  ${renderStepTextWithScalingAndTimers(step, baseS, currS, idx, { includeTimerChips: true })}
                 </div>
-                ${renderStepTimerFooterButtons(step, idx)}
               </div>
             `;
           }).join('')}
@@ -3110,10 +3165,10 @@
       const textEl = document.getElementById('undo-toast-text');
       if (!toast || !textEl) return;
       textEl.textContent = message;
-      toast.classList.add('visible');
+      toast.classList.add('open');
       if (undoToastTimer) clearTimeout(undoToastTimer);
       undoToastTimer = setTimeout(() => {
-        toast.classList.remove('visible');
+        toast.classList.remove('open');
         lastUndoState = null;
       }, 5500);
     }
@@ -3125,13 +3180,7 @@
       lastUndoState = null;
       if (undoToastTimer) clearTimeout(undoToastTimer);
       const toast = document.getElementById('undo-toast');
-      if (toast) toast.classList.remove('visible');
-    }
-
-    function unrecordDeletedId(tabKey, id) {
-      if (!id || !syncMeta.deletedIds[tabKey]) return;
-      syncMeta.deletedIds[tabKey] = syncMeta.deletedIds[tabKey].filter(x => x !== id);
-      saveLocalState();
+      if (toast) toast.classList.remove('open');
     }
 
     /* 3. RENDER MEAL PLAN VIEW */
@@ -3139,7 +3188,7 @@
       const container = document.getElementById('meals-container');
       const meals = appState.meals || [];
       if (meals.length === 0) {
-        container.innerHTML = `<div class="empty-state">No planned meals yet.<br/>Add one above or ask Gemini for meal suggestions!</div>`;
+        container.innerHTML = `<div class="empty-state">No planned meals yet.<br/>Tap "+ Add" above or ask Gemini for meal suggestions!</div>`;
         return;
       }
 
@@ -3152,14 +3201,16 @@
               <button type="button" class="step-done-btn" data-action="delete-meal" data-id="${escapeHtml(m.id)}" aria-label="Remove meal">✕</button>
             </div>
             <h3 class="meal-title">${escapeHtml(m.name)}</h3>
-            <div class="recipe-meta-chips" style="margin-bottom:6px;">
-              ${m.time ? `<span class="meta-chip">⏱ ${escapeHtml(m.time)}</span>` : ''}
-              ${m.difficulty ? `<span class="meta-chip">📊 ${escapeHtml(m.difficulty)}</span>` : ''}
-            </div>
+            ${(m.time || m.difficulty) ? `
+              <div class="recipe-meta-chips" style="margin-bottom:6px;">
+                ${m.time ? `<span class="meta-chip">⏱ ${escapeHtml(m.time)}</span>` : ''}
+                ${m.difficulty ? `<span class="meta-chip">📊 ${escapeHtml(m.difficulty)}</span>` : ''}
+              </div>
+            ` : ''}
             ${m.notes ? `<p class="meal-notes">${escapeHtml(m.notes)}</p>` : ''}
             ${hasRecipe ? `
               <div class="meal-recipe-link">
-                <span>🍳 Open in Kitchen Counter</span>
+                <span>🍳 Open Recipe</span>
                 <span>→</span>
               </div>
             ` : ''}
@@ -3171,6 +3222,7 @@
     function openRecipeFromMeal(recipeId) {
       uiPrefs.selectedRecipeId = recipeId;
       uiPrefs.cookSubView = 'detail';
+      tabScrollPositions.cook = 0;
       switchView('cook');
     }
 
@@ -3178,16 +3230,16 @@
       const idx = appState.meals.findIndex(m => m.id === id);
       if (idx === -1) return;
       const removedMeal = appState.meals[idx];
-      recordDeletedId('meals', id);
       appState.meals.splice(idx, 1);
+      recordDeletedId('meals', id);
       renderMealsView();
-      schedulePushToGoogleSheets('meals');
+      schedulePushToGoogleSheets();
 
       showUndoToast(`Removed "${removedMeal.name}"`, () => {
-        unrecordDeletedId('meals', id);
         appState.meals.splice(idx, 0, removedMeal);
+        unrecordDeletedId('meals', id);
         renderMealsView();
-        schedulePushToGoogleSheets('meals');
+        schedulePushToGoogleSheets();
       });
     }
 
@@ -3196,42 +3248,47 @@
       const container = document.getElementById('notes-container');
       const notes = appState.notes || [];
       if (notes.length === 0) {
-        container.innerHTML = `<div class="empty-state">No notes yet. Tap "+ New Note" to create a note or checklist.</div>`;
+        container.innerHTML = `<div class="empty-state">No notes yet. Tap "+ New" above to create a note or checklist.</div>`;
         return;
       }
 
-      container.innerHTML = notes.map(n => `
-        <div class="note-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px;">
-            <h3 style="margin:0; font-size:1.08rem; font-weight:700;">${n.pinned ? '📌 ' : ''}${escapeHtml(n.title)}</h3>
-            <div style="display:flex; gap:6px; flex-shrink:0;">
-              ${n.type !== 'checklist' ? `
-                <button type="button" class="step-done-btn" data-action="edit-note" data-id="${escapeHtml(n.id)}">Edit</button>
-              ` : ''}
-              <button type="button" class="step-done-btn" data-action="delete-note" data-id="${escapeHtml(n.id)}">Delete</button>
+      container.innerHTML = notes.map(n => {
+        const items = n.items || [];
+        const checkedCount = items.filter(i => i.checked).length;
+        return `
+          <div class="note-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px;">
+              <h3 style="margin:0; font-size:1.08rem; font-weight:700;">${n.pinned ? '📌 ' : ''}${escapeHtml(n.title)}</h3>
+              <button type="button" class="step-done-btn" style="flex-shrink:0;" data-action="edit-note" data-id="${escapeHtml(n.id)}">Edit</button>
             </div>
-          </div>
-          ${n.type === 'checklist' ? `
-            <div class="section-block" style="margin-bottom:8px;">
-              ${(n.items || []).map(item => `
-                <div class="grocery-row ${item.checked ? 'checked' : ''}" data-action="toggle-note-item" data-note-id="${escapeHtml(n.id)}" data-item-id="${escapeHtml(item.id)}">
-                  <div class="checkbox-ui">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  </div>
-                  <div class="grocery-text">${escapeHtml(item.text)}</div>
-                  <button type="button" class="step-done-btn" style="height:32px; padding:0 9px; font-size:0.75rem;" data-action="delete-note-item" data-note-id="${escapeHtml(n.id)}" data-item-id="${escapeHtml(item.id)}" aria-label="Remove item">✕</button>
+            ${n.type === 'checklist' ? `
+              ${items.length > 0 ? `
+                <div class="section-block" style="margin-bottom:8px;">
+                  ${items.map(item => `
+                    <div class="grocery-row ${item.checked ? 'checked' : ''}" data-action="toggle-note-item" data-note-id="${escapeHtml(n.id)}" data-item-id="${escapeHtml(item.id)}">
+                      <div class="checkbox-ui">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      </div>
+                      <div class="grocery-text">${escapeHtml(item.text)}</div>
+                    </div>
+                  `).join('')}
                 </div>
-              `).join('')}
-            </div>
-            <form style="display:flex; gap:6px;" data-action="add-note-checklist-item" data-note-id="${escapeHtml(n.id)}">
-              <input type="text" class="quick-input" style="height:40px; font-size:0.88rem;" placeholder="Add item to ${escapeHtml(n.title)}..." required />
-              <button type="submit" class="btn-secondary" style="flex:0 0 68px; height:40px;">Add</button>
-            </form>
-          ` : `
-            <div style="white-space:pre-wrap; color:var(--text-secondary); font-size:0.95rem;">${escapeHtml(n.content)}</div>
-          `}
-        </div>
-      `).join('');
+              ` : ''}
+              <form style="display:flex; gap:6px;" data-action="add-note-checklist-item" data-note-id="${escapeHtml(n.id)}">
+                <input type="text" class="quick-input" style="height:40px; font-size:0.88rem;" placeholder="Add item to ${escapeHtml(n.title)}…" required />
+                <button type="submit" class="btn-secondary" style="flex:0 0 68px; height:40px;">Add</button>
+              </form>
+              ${checkedCount > 0 ? `
+                <div style="margin-top:8px; display:flex; justify-content:flex-end;">
+                  <button type="button" class="step-done-btn" style="height:34px; padding:0 12px; color:var(--danger);" data-action="clear-note-checked" data-note-id="${escapeHtml(n.id)}">Clear Checked (${checkedCount})</button>
+                </div>
+              ` : ''}
+            ` : `
+              <div style="white-space:pre-wrap; color:var(--text-secondary); font-size:0.95rem;">${escapeHtml(n.content)}</div>
+            `}
+          </div>
+        `;
+      }).join('');
     }
 
     function toggleNoteChecklistItem(noteId, itemId) {
@@ -3241,26 +3298,29 @@
       if (!item) return;
       item.checked = !item.checked;
       note.updatedAt = new Date().toISOString();
+      markRowDirty('notes', noteId);
       renderNotesView();
-      schedulePushToGoogleSheets('notes');
+      schedulePushToGoogleSheets();
     }
 
-    function deleteNoteChecklistItem(noteId, itemId) {
+    function clearNoteCheckedItems(noteId) {
       const note = appState.notes.find(n => n.id === noteId);
-      if (!note || !note.items) return;
-      const idx = note.items.findIndex(i => i.id === itemId);
-      if (idx === -1) return;
-      const removedItem = note.items[idx];
-      note.items.splice(idx, 1);
+      if (!note || !Array.isArray(note.items)) return;
+      const checkedItems = note.items.filter(i => i.checked);
+      if (checkedItems.length === 0) return;
+      const prevItems = note.items.map(i => ({ ...i }));
+      note.items = note.items.filter(i => !i.checked);
       note.updatedAt = new Date().toISOString();
+      markRowDirty('notes', noteId);
       renderNotesView();
-      schedulePushToGoogleSheets('notes');
+      schedulePushToGoogleSheets();
 
-      showUndoToast(`Removed "${removedItem.text}"`, () => {
-        note.items.splice(idx, 0, removedItem);
+      showUndoToast(`Cleared ${checkedItems.length} checked item${checkedItems.length === 1 ? '' : 's'}`, () => {
+        note.items = prevItems;
         note.updatedAt = new Date().toISOString();
+        markRowDirty('notes', noteId);
         renderNotesView();
-        schedulePushToGoogleSheets('notes');
+        schedulePushToGoogleSheets();
       });
     }
 
@@ -3271,28 +3331,35 @@
       const note = appState.notes.find(n => n.id === noteId);
       if (!note) return;
       note.items = note.items || [];
-      note.items.push({ id: 'ci-' + Date.now(), text: val, checked: false });
+      note.items.push({ id: 'ci-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5), text: val, checked: false });
       note.updatedAt = new Date().toISOString();
       input.value = '';
+      markRowDirty('notes', noteId);
       renderNotesView();
-      schedulePushToGoogleSheets('notes');
+      schedulePushToGoogleSheets();
     }
 
     function deleteNote(id) {
       const idx = appState.notes.findIndex(n => n.id === id);
       if (idx === -1) return;
       const removedNote = appState.notes[idx];
-      recordDeletedId('notes', id);
       appState.notes.splice(idx, 1);
+      recordDeletedId('notes', id);
       renderNotesView();
-      schedulePushToGoogleSheets('notes');
+      schedulePushToGoogleSheets();
 
       showUndoToast(`Deleted note "${removedNote.title}"`, () => {
-        unrecordDeletedId('notes', id);
         appState.notes.splice(idx, 0, removedNote);
+        unrecordDeletedId('notes', id);
         renderNotesView();
-        schedulePushToGoogleSheets('notes');
+        schedulePushToGoogleSheets();
       });
+    }
+
+    function deleteNoteFromModal() {
+      const editId = document.getElementById('note-edit-id-input').value.trim();
+      closeModals();
+      if (editId) deleteNote(editId);
     }
 
     /********************************************************************
@@ -3305,13 +3372,34 @@
       notes: 'Notes'
     };
 
+    let hasBooted = false;
+
     function switchView(viewName) {
+      const prevView = uiPrefs.activeView;
+      if (hasBooted && prevView && prevView !== viewName) {
+        tabScrollPositions[prevView] = window.scrollY || 0;
+      }
+
       uiPrefs.activeView = viewName;
       saveLocalState();
+
       if (viewName === 'cook') {
         renderCookView();
       } else {
         document.getElementById('header-title').textContent = VIEW_TITLES[viewName] || 'Pocket Kitchen';
+      }
+
+      const addBtn = document.getElementById('header-add-btn');
+      if (addBtn) {
+        if (viewName === 'meals') {
+          addBtn.textContent = '+ Add';
+          addBtn.classList.add('visible');
+        } else if (viewName === 'notes') {
+          addBtn.textContent = '+ New';
+          addBtn.classList.add('visible');
+        } else {
+          addBtn.classList.remove('visible');
+        }
       }
 
       document.querySelectorAll('.view-container').forEach(el => {
@@ -3321,21 +3409,31 @@
         btn.classList.toggle('active', btn.dataset.view === viewName);
       });
 
+      if (hasBooted) {
+        window.scrollTo(0, tabScrollPositions[viewName] || 0);
+      }
+
       if (viewName === 'cook' && !wakeLockDesired) {
         wakeLockDesired = true;
         requestWakeLock();
       }
     }
 
-    function openSettingsModal() {
+    function renderSettingsStatusBox() {
       const cfg = getSyncConfig();
       const box = document.getElementById('settings-status-box');
-      if (cfg && cfg.sheetId) {
-        const pendingInfo = syncMeta.dirtyTabs.length > 0 ? ` • Pending upload: ${escapeHtml(syncMeta.dirtyTabs.join(', '))}` : '';
-        box.innerHTML = `✅ <strong>Connected to Private Google Sheet</strong><br/><span style="color:var(--text-muted); font-size:0.78rem;">Sheet ID: ...${escapeHtml(cfg.sheetId.slice(-8))} • Last synced: ${appState.lastSyncedAt ? new Date(appState.lastSyncedAt).toLocaleTimeString() : 'Just now'}${pendingInfo}</span>`;
+      if (!box) return;
+      if (cfg && cfg.webhookUrl && cfg.key) {
+        const pendingSummary = getPendingSyncSummary();
+        const pendingInfo = pendingSummary ? ` • Pending: ${escapeHtml(pendingSummary)}` : '';
+        box.innerHTML = `✅ <strong>Connected (Sheet-Scoped Sync)</strong><br/><span style="color:var(--text-muted); font-size:0.78rem;">Last synced: ${appState.lastSyncedAt ? new Date(appState.lastSyncedAt).toLocaleTimeString() : 'Not yet'}${pendingInfo}</span>`;
       } else {
-        box.innerHTML = `⚠️ <strong>Not linked yet.</strong> Open the one-tap setup link from your PC or paste it below.`;
+        box.innerHTML = `⚠️ <strong>Not linked yet.</strong> Open your setup link or paste the <code>#connect=...</code> code below.`;
       }
+    }
+
+    function openSettingsModal() {
+      renderSettingsStatusBox();
       document.getElementById('settings-modal').classList.add('open');
     }
 
@@ -3345,11 +3443,13 @@
       const tokenPart = raw.includes('#connect=') ? raw.split('#connect=')[1].trim() : raw;
       try {
         const cfg = decodeBase64UrlJson(tokenPart);
-        if (cfg && cfg.sheetId) {
+        if (cfg && cfg.webhookUrl && cfg.key) {
           saveSyncConfig(cfg);
           document.getElementById('manual-connect-input').value = '';
           closeModals();
           pullFromGoogleSheets();
+        } else {
+          alert('Invalid connection link or code.');
         }
       } catch (e) {
         alert('Invalid connection link or code.');
@@ -3360,17 +3460,19 @@
       const sel = document.getElementById('meal-recipe-select');
       if (sel) {
         const recipes = [...(appState.recipes || [])].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-        sel.innerHTML = `<option value="">— None (Custom Meal) —</option>` +
+        sel.innerHTML = `<option value="">— Custom / Unlinked Meal —</option>` +
           recipes.map(r => `<option value="${escapeHtml(r.id)}">${escapeHtml(r.title)}</option>`).join('');
       }
       document.getElementById('add-meal-modal').classList.add('open');
     }
 
     function openAddNoteModal() {
-      document.getElementById('note-modal-title').textContent = 'New Note / Checklist';
+      document.getElementById('note-modal-title').textContent = 'New Note';
       document.getElementById('note-edit-id-input').value = '';
-      document.getElementById('note-type-field').style.display = 'block';
+      document.getElementById('note-type-group').style.display = 'block';
+      document.getElementById('delete-note-modal-btn').style.display = 'none';
       document.getElementById('add-note-form').reset();
+      document.getElementById('note-content-label').textContent = 'Checklist Items (one per line)';
       document.getElementById('add-note-modal').classList.add('open');
     }
 
@@ -3381,8 +3483,14 @@
       document.getElementById('note-edit-id-input').value = note.id;
       document.getElementById('note-title-input').value = note.title || '';
       document.getElementById('note-type-input').value = note.type || 'text';
-      document.getElementById('note-type-field').style.display = 'none';
-      document.getElementById('note-content-input').value = note.content || '';
+      document.getElementById('note-type-group').style.display = 'none';
+      document.getElementById('delete-note-modal-btn').style.display = 'inline-flex';
+      document.getElementById('note-content-label').textContent =
+        note.type === 'checklist' ? 'Checklist Items (one per line)' : 'Content';
+      document.getElementById('note-content-input').value =
+        note.type === 'checklist'
+          ? (note.items || []).map(i => i.text).join('\n')
+          : (note.content || '');
       document.getElementById('add-note-modal').classList.add('open');
     }
 
@@ -3402,11 +3510,27 @@
 
     // Unified Delegated Click Listener (Immune to quotes, inch marks, and apostrophes)
     document.addEventListener('click', (e) => {
+      if (e.target.classList && e.target.classList.contains('modal-backdrop')) {
+        closeModals();
+        return;
+      }
+
       const actionEl = e.target.closest('[data-action]');
       if (!actionEl) return;
 
       const action = actionEl.dataset.action;
       switch (action) {
+        case 'header-contextual-add':
+          if (uiPrefs.activeView === 'meals') openAddMealModal();
+          else if (uiPrefs.activeView === 'notes') openAddNoteModal();
+          break;
+        case 'sync-now':
+          syncWithGoogleSheets().then(() => {
+            if (document.getElementById('settings-modal').classList.contains('open')) {
+              renderSettingsStatusBox();
+            }
+          });
+          break;
         case 'open-settings-modal':
           openSettingsModal();
           break;
@@ -3431,6 +3555,9 @@
         case 'start-timer':
           e.stopPropagation();
           startKitchenTimer(Number(actionEl.dataset.seconds) || 60, actionEl.dataset.label || 'Kitchen Timer');
+          break;
+        case 'toggle-timer-expand':
+          toggleTimerExpand(actionEl.dataset.id);
           break;
         case 'add-timer-minute':
           e.stopPropagation();
@@ -3467,10 +3594,10 @@
           toggleCookFocusMode();
           break;
         case 'toggle-focus-ingredients':
-          toggleFocusIngredients();
+          toggleFocusIngredientsDrawer();
           break;
         case 'focus-step-done-next':
-          focusStepDoneAndNext(actionEl.dataset.recipeId, Number(actionEl.dataset.stepIdx));
+          toggleRecipeStepDone(actionEl.dataset.recipeId, Number(actionEl.dataset.stepIdx), true);
           break;
         case 'set-recipe-servings':
           setRecipeServings(actionEl.dataset.recipeId, Number(actionEl.dataset.servings));
@@ -3501,15 +3628,17 @@
         case 'toggle-note-item':
           toggleNoteChecklistItem(actionEl.dataset.noteId, actionEl.dataset.itemId);
           break;
-        case 'delete-note-item':
-          e.stopPropagation();
-          deleteNoteChecklistItem(actionEl.dataset.noteId, actionEl.dataset.itemId);
+        case 'clear-note-checked':
+          clearNoteCheckedItems(actionEl.dataset.noteId);
           break;
         case 'edit-note':
           openEditNoteModal(actionEl.dataset.id);
           break;
         case 'delete-note':
           deleteNote(actionEl.dataset.id);
+          break;
+        case 'delete-note-from-modal':
+          deleteNoteFromModal();
           break;
       }
     });
@@ -3526,6 +3655,12 @@
     // Recipe Search Input Listener
     document.getElementById('recipe-search-input').addEventListener('input', (e) => {
       onRecipeSearchInput(e.target.value);
+    });
+
+    // Note Type Selector Label Toggle
+    document.getElementById('note-type-input').addEventListener('change', (e) => {
+      document.getElementById('note-content-label').textContent =
+        e.target.value === 'checklist' ? 'Checklist Items (one per line)' : 'Content';
     });
 
     // Smart Aisle Auto-Selection on Grocery Quick Add
@@ -3556,7 +3691,7 @@
       const nameInput = document.getElementById('meal-name-input');
       const timeInput = document.getElementById('meal-time-input');
       if (nameInput && !nameInput.value.trim()) {
-        nameInput.value = r.title || '';
+        nameInput.value = parseRecipeCategoryAndName(r.title).cleanTitle || r.title || '';
       }
       if (timeInput && !timeInput.value.trim()) {
         timeInput.value = [r.prepTime, r.cookTime].filter(Boolean).join(' + ') || r.cookTime || r.prepTime || '';
@@ -3575,7 +3710,10 @@
     });
 
     document.getElementById('wake-btn').addEventListener('click', toggleWakeLock);
-    document.getElementById('sync-pill').addEventListener('click', () => pullFromGoogleSheets());
+    document.getElementById('sync-pill').addEventListener('click', () => {
+      if (!getSyncConfig()) openSettingsModal();
+      else pullFromGoogleSheets();
+    });
     document.getElementById('settings-btn').addEventListener('click', openSettingsModal);
     document.getElementById('theme-btn').addEventListener('click', () => {
       const current = document.documentElement.getAttribute('data-theme') || 'dark';
@@ -3591,8 +3729,18 @@
       const chosenSection = grocerySectionManuallyChosen
         ? secSelect.value
         : (inferGrocerySection(text) || secSelect.value);
+
+      if (grocerySectionManuallyChosen) {
+        const normKey = normalizeGroceryItemKey(text);
+        if (normKey) {
+          if (!uiPrefs.learnedAisles) uiPrefs.learnedAisles = {};
+          uiPrefs.learnedAisles[normKey] = chosenSection;
+        }
+      }
+
+      const newId = 'g-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5);
       appState.grocery.push({
-        id: 'g-' + Date.now(),
+        id: newId,
         section: chosenSection,
         item: text,
         checked: false,
@@ -3601,8 +3749,9 @@
       });
       input.value = '';
       grocerySectionManuallyChosen = false;
+      markRowDirty('grocery', newId);
       renderGroceryView();
-      schedulePushToGoogleSheets('grocery');
+      schedulePushToGoogleSheets();
     });
 
     document.getElementById('toggle-hide-checked-btn').addEventListener('click', () => {
@@ -3615,37 +3764,37 @@
       const checkedItems = appState.grocery.filter(i => i.checked);
       if (checkedItems.length === 0) return;
       const snapshot = checkedItems.map(i => ({ ...i }));
-      checkedItems.forEach(i => recordDeletedId('grocery', i.id));
       appState.grocery = appState.grocery.filter(i => !i.checked);
+      checkedItems.forEach(i => recordDeletedId('grocery', i.id));
       renderGroceryView();
-      schedulePushToGoogleSheets('grocery');
+      schedulePushToGoogleSheets();
 
       showUndoToast(`Cleared ${snapshot.length} checked item${snapshot.length === 1 ? '' : 's'}`, () => {
-        snapshot.forEach(i => unrecordDeletedId('grocery', i.id));
         appState.grocery.push(...snapshot);
+        snapshot.forEach(i => unrecordDeletedId('grocery', i.id));
         renderGroceryView();
-        schedulePushToGoogleSheets('grocery');
+        schedulePushToGoogleSheets();
       });
     });
 
     document.getElementById('add-meal-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const linkedRecipeId = document.getElementById('meal-recipe-select').value || '';
-      const difficultyVal = document.getElementById('meal-difficulty-select').value || 'Easy';
+      const newId = 'm-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5);
       appState.meals.push({
-        id: 'm-' + Date.now(),
+        id: newId,
         day: document.getElementById('meal-day-input').value.trim(),
         name: document.getElementById('meal-name-input').value.trim(),
         time: document.getElementById('meal-time-input').value.trim(),
-        difficulty: difficultyVal,
+        difficulty: '',
         notes: document.getElementById('meal-notes-input').value.trim(),
-        recipeId: linkedRecipeId,
-        updatedAt: new Date().toISOString()
+        recipeId: linkedRecipeId
       });
+      markRowDirty('meals', newId);
       e.target.reset();
       closeModals();
       renderMealsView();
-      schedulePushToGoogleSheets('meals');
+      schedulePushToGoogleSheets();
     });
 
     document.getElementById('add-note-form').addEventListener('submit', (e) => {
@@ -3659,28 +3808,45 @@
         const existing = appState.notes.find(n => n.id === editId);
         if (existing) {
           existing.title = title;
-          existing.content = content;
+          if (existing.type === 'checklist') {
+            const oldPool = [...(existing.items || [])];
+            const lines = content.split('\n').map(s => s.trim()).filter(Boolean);
+            existing.items = lines.map((lineText, idx) => {
+              const matchIdx = oldPool.findIndex(old => (old.text || '').toLowerCase() === lineText.toLowerCase());
+              if (matchIdx !== -1) {
+                const matched = oldPool.splice(matchIdx, 1)[0];
+                return { id: matched.id, text: lineText, checked: Boolean(matched.checked) };
+              }
+              return { id: `ci-${Date.now()}-${idx}`, text: lineText, checked: false };
+            });
+            existing.content = '';
+          } else {
+            existing.content = content;
+          }
           existing.updatedAt = new Date().toISOString();
+          markRowDirty('notes', existing.id);
         }
       } else {
+        const newId = 'n-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5);
         const items = type === 'checklist'
           ? content.split('\n').map(s => s.trim()).filter(Boolean).map((t, i) => ({ id: `ci-${Date.now()}-${i}`, text: t, checked: false }))
           : [];
         appState.notes.unshift({
-          id: 'n-' + Date.now(),
+          id: newId,
           title,
           type,
-          content,
+          content: type === 'checklist' ? '' : content,
           items,
           pinned: false,
           updatedAt: new Date().toISOString()
         });
+        markRowDirty('notes', newId);
       }
       e.target.reset();
       document.getElementById('note-edit-id-input').value = '';
       closeModals();
       renderNotesView();
-      schedulePushToGoogleSheets('notes');
+      schedulePushToGoogleSheets();
     });
 
     // Boot Application
@@ -3694,12 +3860,19 @@
       loadTimersFromStorage();
       checkUrlHashForConnection();
       switchView(uiPrefs.activeView || 'grocery');
+      hasBooted = true;
       renderAll();
       pullFromGoogleSheets();
 
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
           pullFromGoogleSheets({ silent: true });
+        }
+      });
+
+      window.addEventListener('hashchange', () => {
+        if (checkUrlHashForConnection()) {
+          pullFromGoogleSheets();
         }
       });
 

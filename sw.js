@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pocket-kitchen-v5';
+const CACHE_NAME = 'pocket-kitchen-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -40,10 +40,11 @@ self.addEventListener('notificationclick', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-  // Never cache Google API or OAuth requests
+  // Never cache Google API or Apps Script requests
   if (
     url.hostname.includes('googleapis.com') ||
     url.hostname.includes('google.com') ||
+    url.hostname.includes('googleusercontent.com') ||
     event.request.method !== 'GET'
   ) {
     return;
